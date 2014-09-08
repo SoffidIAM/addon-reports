@@ -16,7 +16,7 @@
 		<maven>2.0.1</maven>
 	</prerequisites>
 	<scm>
-<!--		<connection>scm:git:ssh://git@githu.com/Soffid_IAM/reports.git</connection> -->
+		<connection>scm:git:ssh://git@githu.com/Soffid_IAM/addon-reports.git</connection> 
         </scm>
 	<build>
 		<defaultGoal>install</defaultGoal>
