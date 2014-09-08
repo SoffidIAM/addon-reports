@@ -1,10 +1,11 @@
 package com.soffid.iam.addons.report.service;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 
 import com.soffid.iam.addons.acl.service.ACLService;
-import com.soffid.iam.addons.doc.service.DocumentService;
+import com.soffid.iam.doc.service.DocumentService;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ExecutedReportCriteria;
 import com.soffid.iam.addons.report.api.Report;
@@ -23,6 +24,7 @@ import com.soffid.iam.addons.report.roles.Query;
 import com.soffid.iam.addons.report.roles.Schedule;
 import com.soffid.mda.annotation.Depends;
 import com.soffid.mda.annotation.Description;
+import com.soffid.mda.annotation.Nullable;
 import com.soffid.mda.annotation.Operation;
 import com.soffid.mda.annotation.Service;
 
@@ -39,6 +41,8 @@ import es.caib.seycon.ng.servei.UsuariService;
 		ScheduledReportEntity.class, ScheduledReportTargetEntity.class, ScheduledReportParameterEntity.class,
 		ExecutedReportEntity.class, ExecutedReportTargetEntity.class, ExecutedReportParameterEntity.class,
 	// Services
+		ReportSchedulerService.class,
+		
 		// DocumentService.class
 		DocumentService.class, ACLService.class,
 		
@@ -53,11 +57,11 @@ public class ReportService {
 	
 	@Operation(grantees={Admin.class, Query.class, Schedule.class})
 	@Description("Uploads a crystal report. It's parsed and registered into database")
-	public Collection<Report> findReports (String name, boolean exactMatch) { return null; }
+	public Collection<Report> findReports (@Nullable String name, boolean exactMatch) { return null; }
 	
 	@Operation(grantees={Admin.class})
 	@Description("Uploads a crystal report. It's parsed and registered into database")
-	public Report upload (byte [] data) { return null; }
+	public Report upload (InputStream report) { return null; }
 
 	@Operation(grantees={Admin.class})
 	@Description("Removes a report definition, its executions and schedules")
@@ -67,7 +71,7 @@ public class ReportService {
 	@Description("Updates a report definition. No parameter can be created, only updates are allowed")
 	public void update (Report report) {}
 	
-	// Schedule rpoerts
+	// Schedule reports
 	
 	@Operation(grantees={Schedule.class})
 	@Description("Schedules a report to be executed on a given time")
@@ -82,6 +86,10 @@ public class ReportService {
 	public void remove (ScheduledReport schedule) {}
 
 
+	@Operation(grantees={Schedule.class})
+	@Description("Finds scheduled reports")
+	public Collection<ScheduledReport> findScheduledReports (@Nullable String name) { return null; }
+	
 	// Execute reports
 	
 	@Operation(grantees={Query.class})
@@ -103,5 +111,12 @@ public class ReportService {
 	@Description("Gets a report content")
 	public Collection<ExecutedReport> findExecutedReports (ExecutedReportCriteria criteria) { return null; }
 	
+	@Operation(grantees={Query.class})
+	@Description("Removes a executed report. In fact, removes the user from the targes of the report, and only remove the report if the user is the last on on the targets list")
+	public void remove (ExecutedReport report) {
+		
+	}
 	
+	@Operation(grantees={Admin.class})
+	public void generateDevelopmentEnvironment (OutputStream out) {}
 }

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><?page id="lopd" title="Fitxers amb dades de caràcter personal"?>
+<?taglib uri="/WEB-INF/tld/web/core.dsp.tld" prefix="c" ?>
+<?component name="input_criteri" macro-uri="/comu/input_criteri.zul"?>
+<?component name="input_criteri_data" macro-uri="/comu/input_criteri_data.zul"?>
+<?component name="input_dada" macro-uri="/comu/input_dada.zul"?>
+<?component name="input_etiqueta" macro-uri="/comu/input_etiqueta.zul"?>
+
+<zk>
+	<style>
+		.report:hover{ text-decoration: underline; cursor: pointer}
+	</style>
+
+	<esquemavertical datamodel="/model" focusCriteri="queryName"
+		id="esquema" onHideFormulari="showLista()">
+	
+		<zscript><![CDATA[
+			void search () 
+			{
+				es.caib.zkib.datasource.XPathUtils.getValue(model, "/executedReport").refresh ();
+			}
+			
+			void download (Component c)
+			{
+				es.caib.zkib.binder.BindContext ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(c);
+				Boolean error = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@error");
+				if (error)
+				{
+					String errorMsg = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@errorMessage");
+					es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(errorMsg, "ERROR");	
+				}
+				else
+				{
+					String doc = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@pdfDocument");
+					String name = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@name");
+					download (name+".pdf", doc, "pdf", "binary/octet-stream");
+				}
+			}
+			
+			void downloadhtml (Component c)
+			{
+				es.caib.zkib.binder.BindContext ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(c);
+				Boolean error = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@error");
+				if (error)
+				{
+					String errorMsg = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@errorMessage");
+					es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(errorMsg, "ERROR");	
+				}
+				else
+				{
+					String doc = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@htmlDocument");
+					String name = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@name");
+					download (name+".zip", doc, "zip", "binary/x-zip-compressed");
+				}
+			}
+			
+			void downloadxml (Component c)
+			{
+				es.caib.zkib.binder.BindContext ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(c);
+				Boolean error = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@error");
+				if (error)
+				{
+					String errorMsg = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@errorMessage");
+					es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(errorMsg, "ERROR");	
+				}
+				else
+				{
+					String doc = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@xmlDocument");
+					String name = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@name");
+					download (name+".xml", doc, "xml", "binary/octet-stream");
+				}
+			}
+			
+			void download (String name, String doc, String format, String mimeFormat)
+			{
+				if (doc == null)
+				{
+					es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(msg.get("reportIsEmpty"));
+				}
+				else
+				{
+					com.soffid.iam.doc.service.ejb.DocumentServiceHome home = 
+							new javax.naming.InitialContext()
+								.lookup (com.soffid.iam.doc.service.ejb.DocumentServiceHome.JNDI_NAME);
+					com.soffid.iam.doc.service.ejb.DocumentService svc =
+							home.create();
+					svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(doc));
+					org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(
+							name, format, mimeFormat, new com.soffid.iam.doc.api.DocumentInputStream(svc) );
+					
+					downloadWindow.setContent(media);
+					downloadWindow.invalidate();
+				}
+			}
+		]]></zscript>
+	
+		<criteris id="queryWindow" onOK="search()"
+			width="${amplaria}">
+				<button style="padding: 20px; float:right;" label="${msg['report.execute']}">
+				<attribute name="onClick">
+		<![CDATA[
+				Events.sendEvent(new Event("onStart", wizardEmbed.getFellow("wizardWindow")));
+		]]>
+				</attribute>
+				</button>
+		
+			<hbox>
+				<label sclass="etiqueta" style="display:inline-block;" value="${msg['report.sinceDate']}" width="100px"/>
+				<datebox bind="/model:/query[1]/@fromDate" width="110px" format="${c:l('accounts.dateFormat')}"  style="padding-right: 20px"/>
+				<label sclass="etiqueta" style="display:inline-block;"  value="${msg['report.untilDate']}" width="100px"/>
+				<datebox bind="/model:/query[1]/@untilDate"  width="110px" format="${c:l('accounts.dateFormat')}"  style="padding-right: 20px"/>
+			</hbox>
+			<hbox>
+				<label sclass="etiqueta" style="display:inline-block;" value="${msg['report.name']}" width="100px"/>
+				<textbox onChange="" id="queryName" width="400px" bind="/model:/query[1]/@name"/>
+				<imageclic onClick="search()" src="~./img/fletxa_cerca.gif" style="margin-left: 280px"/>
+			</hbox>
+		</criteris>
+	
+		<navegador id="lista" width="100%">
+			<grid dataPath="/model:/executedReport" fixedLayout="true"
+				height="96%" id="listbox">
+				<columns>
+					<column label="${msg['report.name']}" width="100%"/>
+					<column label="${msg['report.date']}" width="12em"/>
+					<column label=" " width="32px" align="center" />
+				</columns>
+				<datarow>
+					<div style="display:inline-block">
+						<label bind="@name" onClick="download(self)" sclass="report"/>
+						<label value="[XML]" style="margin-left: 2em" onClick="downloadxml(self)" sclass="report"/>
+						<label value="[HTML]" style="margin-left: 2em" onClick="downloadhtml(self)" sclass="report"/>
+					</div>
+					<datebox disabled="true" bind="@date" width="10em" format="${c:l('accounts.dateFormat')}" buttonVisible="false" ></datebox>
+					<imageclic align="right" src="~./img/list-remove.gif">
+						<attribute name="onClick">
+							<![CDATA[
+								es.caib.zkib.binder.BindContext ctx = 
+									es.caib.zkib.datasource.XPathUtils.getComponentContext (event.target);
+								es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath());
+								model.commit();
+							]]>
+						</attribute>
+					</imageclic>
+				</datarow>
+			</grid>
+			
+		</navegador>
+	</esquemavertical>
+
+</zk> 

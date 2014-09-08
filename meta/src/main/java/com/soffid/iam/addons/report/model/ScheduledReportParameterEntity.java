@@ -11,7 +11,7 @@ import com.soffid.mda.annotation.Entity;
 import com.soffid.mda.annotation.Identifier;
 import com.soffid.mda.annotation.Nullable;
 
-@Entity(table="SCR_EXREPA")
+@Entity(table="SCR_SCREPA")
 @Depends({ParameterValue.class})
 public class ScheduledReportParameterEntity {
 	@Identifier

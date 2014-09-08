@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<zkib-model>
+	<datanode name="root">
+		<script-handler></script-handler>
+		<finder name="newReport" type ="newReport">
+			<script-finder>
+				sr = new com.soffid.iam.addons.report.api.ScheduledReport();
+				sr.setCronDayOfMonth("*");
+				sr.setCronMonth("*");
+				sr.setCronHour("0");
+				sr.setCronMinute("0");
+				sr.setCronDayOfWeek("*");
+				sr.setScheduled(false);
+				sr.setTarget(new LinkedList());
+				return sr;
+			</script-finder>
+		</finder>
+
+		<finder name="query" type="query">
+			<script-finder>
+				q = new com.soffid.iam.addons.report.api.ExecutedReportCriteria();
+				v = new java.util.Vector ();
+				v.add(q);
+				return v;
+			</script-finder>
+		</finder>
+
+		<finder name="executedReport" type="executedReport">
+			<ejb-finder jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService" 
+			method="findExecutedReports" if="${queryEnabled}"> 
+				<parameter value="${self.query[0].instance}" />
+			</ejb-finder>
+		</finder>
+
+		<finder name="report" type="report">
+			<ejb-finder jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService" 
+			method="findReports" if="${queryEnabled}">
+				<parameter value="${report}" />
+				<parameter value="${false}" />
+			</ejb-finder>
+		</finder>
+
+		<finder name="scheduledReport" type="scheduledReport">
+			<ejb-finder jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService" 
+			method="findScheduledReports" if="${queryEnabled}">
+				<parameter value="${report}" />
+			</ejb-finder>
+		</finder>
+
+
+		<finder name="paramType" type="paramType">
+			<script-finder>
+			    return com.soffid.iam.addons.report.api.ParameterType.literals()
+			</script-finder>
+		</finder>
+
+	</datanode>
+	
+
+	<datanode name="executedReport" >
+		<ejb-handler jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService">
+			<delete-method method="remove">    
+				<parameter value="${instance}" />
+			</delete-method>
+		</ejb-handler>
+	</datanode>
+
+	<datanode name="report" >
+		<ejb-handler jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService">
+			<delete-method method="remove">    
+				<parameter value="${instance}" />
+			</delete-method>
+			<update-method method="update"> 
+				<parameter value="${instance}" />
+			</update-method>
+		
+		</ejb-handler>
+		<finder name="acl" type="acl">
+			<collection-finder collection="${instance.acl}"/>
+		</finder>
+	</datanode>
+	
+	
+	<datanode name="scheduledReport" >
+		<ejb-handler jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService">
+			<delete-method method="remove">    
+				<parameter value="${instance}" />
+			</delete-method>
+			<update-method method="update"> 
+				<parameter value="${instance}" />
+			</update-method>
+		</ejb-handler>
+		<finder name="target" type="target">
+			<collection-finder collection="${instance.target}"/>
+		</finder>
+	</datanode>
+
+	<datanode name="newReport" transient="true">
+		<finder name="target" type="target">
+			<collection-finder collection="${instance.target}"/>
+		</finder>
+	</datanode>
+	
+	<datanode name="acl">
+		<collection-handler collection="${instance.acl}">
+		</collection-handler>
+		<custom-attribute name="objectName"><![CDATA[
+			return instance;
+		]]></custom-attribute>
+		<custom-attribute name="objectType"><![CDATA[
+			String name = instance;
+			try {
+			   usuari = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.UsuariService")
+			   	. create()
+			   	.findUsuariByCodiUsuari(name);
+			   if (usuari != null)
+			   	  return "user";
+			} catch (Exception e) {}
+			try {
+			   grup = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.GrupService")
+			   	. create()
+			   	.findGrupByCodiGrup(name);
+			   if (grup != null)
+			   	  return "group";
+			} catch (Exception e) {}
+			try {
+			   int i = name.indexOf(" @ ");
+			   if ( i > 0)
+			   {
+			   	  return "role";
+			   }
+			} catch (Exception e) {}
+			return "???";
+		]]></custom-attribute>
+	</datanode>
+
+	<datanode name="target">
+		<collection-handler collection="${instance.target}">
+		</collection-handler>
+		<custom-attribute name="objectName"><![CDATA[
+			return instance;
+		]]></custom-attribute>
+		<custom-attribute name="objectType"><![CDATA[
+			String name = instance;
+			try {
+			   usuari = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.UsuariService")
+			   	. create()
+			   	.findUsuariByCodiUsuari(name);
+			   if (usuari != null)
+			   	  return "user";
+			} catch (Exception e) {}
+			try {
+			   grup = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.GrupService")
+			   	. create()
+			   	.findGrupByCodiGrup(name);
+			   if (grup != null)
+			   	  return "group";
+			} catch (Exception e) {}
+			try {
+			   int i = name.indexOf(" @ ");
+			   if ( i > 0)
+			   {
+			   	  return "role";
+			   }
+			} catch (Exception e) {}
+			return "???";
+		]]></custom-attribute>
+	</datanode>
+	<datanode name="void" />
+	
+	<datanode name="query" transient="true"/>
+	
+	<datanode name="paramType" transient="true">
+		<custom-attribute name="literal">
+			return new com.soffid.iam.addons.report.web.Messages().get("parameterType."+instance);
+		</custom-attribute>
+		<custom-attribute name="value">
+			return com.soffid.iam.addons.report.api.ParameterType.fromString(instance);
+		</custom-attribute>
+
+	</datanode>
+	
+</zkib-model>

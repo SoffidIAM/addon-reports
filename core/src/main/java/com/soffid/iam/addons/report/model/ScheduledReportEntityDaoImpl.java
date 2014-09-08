@@ -23,6 +23,7 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 	@Override
 	public void toScheduledReport(ScheduledReportEntity source,
 			ScheduledReport target) {
+		super.toScheduledReport(source, target);
 		Collection<String> users = new LinkedList<String>();
 		for (ScheduledReportTargetEntity ace: source.getAcl())
 		{
@@ -31,7 +32,7 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 			else if (ace.getGroup() != null)
 				users.add(ace.getGroup().getCodi());
 			else if (ace.getRole() != null)
-				users.add(ace.getRole().getNom()+"@"+ace.getRole().getBaseDeDades());
+				users.add(ace.getRole().getNom()+"@"+ace.getRole().getBaseDeDades().getCodi());
 		}
 		target.setTarget(users);
 		target.setReportId(source.getReport().getId());
@@ -90,10 +91,10 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 		target.getAcl().removeAll(olds);
 		
 		// Populate params
-		target.setParameters( 
-				new HashSet<ScheduledReportParameterEntity>(
+		target.getParameters().clear();
+		target.getParameters().addAll(
 						getScheduledReportParameterEntityDao().parameterValueToEntityList(
-								source.getParams())));
+								source.getParams()));
 		for (ScheduledReportParameterEntity srpe: target.getParameters())
 			srpe.setReport(target);
 		

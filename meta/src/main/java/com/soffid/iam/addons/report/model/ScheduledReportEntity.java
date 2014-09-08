@@ -1,9 +1,11 @@
 package com.soffid.iam.addons.report.model;
 
+import java.util.Collection;
 import java.util.Date;
 
 import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.mda.annotation.Column;
+import com.soffid.mda.annotation.DaoFinder;
 import com.soffid.mda.annotation.Depends;
 import com.soffid.mda.annotation.Entity;
 import com.soffid.mda.annotation.Identifier;
@@ -31,13 +33,17 @@ public class ScheduledReportEntity {
 	@Column(name="SRE_CRON")
 	String cronExpression;
 
-	@Column(name="SRE_SER_ID")
-	ServerEntity server;
-	
+	@Nullable
 	@Column(name="SRE_LASEXE")
 	Date lastExecution;
 	
 	@Column(name="SRE_CREATION")
 	Date creationDate;
+
+	//////////            Finders
+	@DaoFinder("select re from com.soffid.iam.addons.report.model.ScheduledReportEntity as re where re.name like :name")
+	Collection<ScheduledReportEntity> findByNameFilter (String name ) {
+		return null;
+	}
 
 }

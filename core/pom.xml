@@ -245,14 +245,14 @@
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-core</artifactId>
-			<version>1.4.0</version>
+			<version>${console.version}</version>
 			<scope>provided</scope>
 			<type>ejb</type>
 		</dependency>
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-core</artifactId>
-			<version>1.4.0</version>
+			<version>${console.version}</version>
 			<scope>test</scope>
 			<classifier>test-jar</classifier>
 			<type>jar</type>
@@ -295,12 +295,19 @@
 			<artifactId>signaturacaib.core</artifactId>
 			<version>3.3.0</version>
 			<classifier>api</classifier>
-			<scope>test</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>1.8.0.7</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.soffid.iam.console</groupId>
+			<artifactId>document-manager-ejb</artifactId>
+			<version>1.4.0-1</version>
+			<type>ejb</type>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

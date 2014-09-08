@@ -5,20 +5,33 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.zip.ZipEntry;
 
 import javax.ejb.CreateException;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.type.CustomType;
+import org.hibernate.type.Type;
 import org.jfree.util.Log;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -30,9 +43,6 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.util.JRLoader;
 
 import com.soffid.iam.addons.acl.api.AccessControlList;
-import com.soffid.iam.addons.doc.api.DocumentReference;
-import com.soffid.iam.addons.doc.exception.DocumentBeanException;
-import com.soffid.iam.addons.doc.service.DocumentService;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ExecutedReportCriteria;
 import com.soffid.iam.addons.report.api.ParameterType;
@@ -49,12 +59,14 @@ import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ReportEntityDao;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportEntityDao;
+import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.doc.exception.DocumentBeanException;
+import com.soffid.iam.doc.service.DocumentService;
 
-import es.caib.bpm.beans.home.DocumentHome;
-import es.caib.bpm.beans.remote.Document;
 import es.caib.seycon.ng.comu.Configuracio;
 import es.caib.seycon.ng.comu.Usuari;
 import es.caib.seycon.ng.exception.InternalErrorException;
+import es.caib.seycon.ng.model.identity.IdentityGenerator;
 import es.caib.seycon.ng.servei.ConfiguracioService;
 import es.caib.seycon.ng.utils.Security;
 
@@ -62,23 +74,27 @@ import es.caib.seycon.ng.utils.Security;
 public class ReportServiceImpl extends ReportServiceBase implements ApplicationContextAware, InitializingBean {
 
 	private ApplicationContext applicationContext;
-	private ExecutorThread executorThread;
-	private SchedulerThread schedulerThread;
 
 	@Override
 	protected Collection<Report> handleFindReports(String name,
 			boolean exactMatch) throws Exception {
-		if (exactMatch){
-			List<Report> list = new LinkedList<Report>();
+		List<Report> list;
+		if (exactMatch)
+		{
+			list = new LinkedList<Report>();
 			ReportEntity r = getReportEntityDao().findByName(name);
 			if (r != null)
 				list.add ( getReportEntityDao().toReport(r));
-			return list;
+		}
+		else if (name == null || name.trim().length() == 0)
+		{
+			list = getReportEntityDao().toReportList(getReportEntityDao().loadAll());
 		}
 		else
 		{
-			return getReportEntityDao().toReportList(getReportEntityDao().findByNameFilter(name));
+			list = getReportEntityDao().toReportList(getReportEntityDao().findByNameFilter(name));
 		}
+		return list;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -120,8 +136,16 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	}
 	
 	@Override
-	protected Report handleUpload(byte[] data) throws Exception {
-        JasperReport jr = (JasperReport) JRLoader.loadObject(new ByteArrayInputStream(data));
+	protected Report handleUpload(InputStream report) throws Exception {
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		int read;
+		byte buffer[] = new byte[4096];
+		while ( (read = report.read(buffer)) > 0)
+		{
+			data.write(buffer, 0, read);
+		}
+		data.close();
+        JasperReport jr = (JasperReport) JRLoader.loadObject(new ByteArrayInputStream(data.toByteArray()));
         String name = jr.getName();
 
         Report r;
@@ -141,7 +165,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         List<ReportParameter> rp = new LinkedList<ReportParameter>();
         for (JRParameter jp: jr.getParameters())
         {
-        	if ( jp.isForPrompting())
+        	if ( jp.isForPrompting() && ! jp.isSystemDefined())
         	{
         		// Search existing parameter
         		boolean found = false;
@@ -175,6 +199,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		        	ReportParameter p = new ReportParameter();
 		        	p.setName(jp.getName());
 		        	p.setDescription (jp.getDescription());
+		        	if (p.getDescription() == null)
+		        		p.setDescription("No description available");
 		        	p.setType(guessParameterType(jp));
 		        	rp.add(p);
         		}
@@ -185,7 +211,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         r.setAcl(new LinkedList<String>());
         r.getAcl().add(Security.getCurrentUser());
 
-        DocumentReference ref = storeDocument (name, data);
+        DocumentReference ref = storeDocument (name, data.toByteArray());
         
         re = getReportEntityDao().reportToEntity(r);
         re.setDocId(ref.toString());
@@ -194,7 +220,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         else
         	getReportEntityDao().update(re);
         
-        return r;
+        return getReportEntityDao().toReport(re);
 	}
 
 	private DocumentReference storeDocument(String name, byte[] data) throws NamingException, RemoteException, CreateException, DocumentBeanException, InternalErrorException {
@@ -209,7 +235,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	@Override
 	protected ExecutedReport handleLaunchReport(ScheduledReport schedule)
 			throws Exception {
-		ReportEntity report = getReportEntityDao().load (schedule.getId());
+		ReportEntity report = getReportEntityDao().load (schedule.getReportId());
 		if (canExecute (report))
 		{
 			es.caib.seycon.ng.model.UsuariEntity myself = getUsuariEntityDao ().findByCodi(Security.getCurrentUser());
@@ -234,8 +260,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			
 			getExecutedReportEntityDao().create(er);
 			
-			if (executorThread != null)
-				executorThread.newReportCreated();
+			ExecutorThread.getInstance().newReportCreated();
 			
 			return getExecutedReportEntityDao().toExecutedReport(er);
 		} else
@@ -262,8 +287,6 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	}
 
 	private boolean canView(ExecutedReportEntity report) throws InternalErrorException {
-		if (Security.isUserInRole("report:admin"))
-			return true;
 		Usuari user = getUsuariService().getCurrentUsuari();
 		AccessControlList acl = new AccessControlList();
 		
@@ -295,10 +318,20 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		LinkedList<ExecutedReport> result = new LinkedList<ExecutedReport>();
 		for (ExecutedReportEntity ere : dao.findByCriteria(criteria))
 		{
-			if (canView(ere))
+			if ((ere.isDone() || ere.isError()) && canView(ere))
 				result.add (dao.toExecutedReport(ere));
 		}
-		
+
+		Collections.sort(result, new Comparator<ExecutedReport>() {
+
+			public int compare(ExecutedReport o1, ExecutedReport o2) {
+				if (o1.getDate() == null)
+					return -1;
+				if (o2.getDate() == null)
+					return +1;
+				return - (o1.getDate().compareTo(o2.getDate()));
+			}
+		});
 		return result;
 	}
 
@@ -317,6 +350,19 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	@Override
 	protected ScheduledReport handleCreate(ScheduledReport schedule)
 			throws Exception {
+		if (schedule.getCronDayOfMonth() == null || schedule.getCronDayOfMonth().trim().length() == 0)
+			throw new IllegalArgumentException("Missing cron day pattern");
+		if (schedule.getCronDayOfWeek() == null || schedule.getCronDayOfWeek().trim().length() == 0)
+			throw new IllegalArgumentException("Missing cron day of week pattern");
+		if (schedule.getCronHour() == null || schedule.getCronHour().trim().length() == 0)
+			throw new IllegalArgumentException("Missing cron hour pattern");
+		if (schedule.getCronMinute() == null || schedule.getCronMinute().trim().length() == 0)
+			throw new IllegalArgumentException("Missing cron minute pattern");
+		if (schedule.getCronMonth() == null || schedule.getCronMonth().trim().length() == 0)
+			throw new IllegalArgumentException("Missing cron month pattern");
+		schedule.setNextExecution( null );
+		schedule.setLastExecution( null );
+		schedule.setCreationDate(new Date());
 		ScheduledReportEntity sre = getScheduledReportEntityDao().scheduledReportToEntity(schedule);
 		getScheduledReportEntityDao().create(sre);
 		return getScheduledReportEntityDao().toScheduledReport(sre);
@@ -338,43 +384,11 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		ConfiguracioService cfgSvc = getConfiguracioService();
-		Configuracio cfg = cfgSvc.findParametreByCodiAndCodiXarxa("addon.report.server", null);
-		String hostName = InetAddress.getLocalHost().getHostName();
-		if (cfg == null)
-		{
-			cfg = new Configuracio ();
-			cfg.setCodi("addon.report.server");
-			cfg.setValor(hostName);
-			cfg.setDescripcio("Console to execute reports");
-			cfgSvc.create(cfg);
-		} else if (! cfg.getValor().equals(hostName)) {
-			Log.info("This host is not the report server ("+cfg.getValor()+")");
-			return;
-		}
-		
-		executorThread = new ExecutorThread();
-		executorThread.setApplicationContext (applicationContext);
-
-		schedulerThread = new SchedulerThread();
-		schedulerThread.setApplicationContext (applicationContext);
-		schedulerThread.setExecutorThread(executorThread);
-
-		executorThread.start();
-		schedulerThread.start();
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		this.applicationContext = applicationContext;
-	}
-
-	protected void finalize ()
-	{
-		if (executorThread != null)
-			executorThread.end();
-		if (schedulerThread != null)
-			schedulerThread.end();
 	}
 
 	@Override
@@ -408,4 +422,155 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		doc.endDownloadTransfer();
 		doc.closeDocument();
 	}
+
+	private boolean dump (String resource, JarOutputStream jar) throws IOException
+	{
+		InputStream in = getClass().getClassLoader().getResourceAsStream(resource);
+		if (in != null)
+		{
+			jar.putNextEntry(new ZipEntry(resource));
+			dumpStream(in, jar);
+			jar.closeEntry();
+			return true;
+		}
+		else
+			return false;
+		
+	}
+
+	private void dumpStream(InputStream in, OutputStream out)
+			throws IOException {
+		byte b[] = new byte[2048];
+		int read;
+		while ( (read = in.read(b)) > 0)
+		{
+			out.write (b, 0, read);
+		}
+		in.close ();
+	}
+	@Override
+	protected void handleGenerateDevelopmentEnvironment(OutputStream out)
+			throws Exception {
+		SessionFactory sf = (SessionFactory) applicationContext.getBean("sessionFactory");
+		JarOutputStream jar = new JarOutputStream(out);
+		HashSet<String> storedObjects = new HashSet<String>();
+		
+		ByteArrayOutputStream hibernateFile  = new ByteArrayOutputStream();
+		
+		dumpStream(getClass().getResourceAsStream("hibernate-header"), hibernateFile);
+		
+		
+		for (Object key : sf.getAllClassMetadata().keySet())
+		{
+			String className = (String) key;
+			Class<?> cl = Class.forName(className);
+			ClassMetadata md = (ClassMetadata) sf.getAllClassMetadata().get(className);
+			
+			do
+			{
+				dumpClass ( cl, jar, storedObjects );
+				String resource = cl.getCanonicalName().replace('.', '/')+ ".hbm.xml";
+				if (!storedObjects.contains(resource) && dump (resource, jar))
+				{
+					storedObjects.add(resource);
+					hibernateFile.write ("   <mapping resource=\"".getBytes());
+					hibernateFile.write (resource.getBytes());
+					hibernateFile.write ("\"/>\n".getBytes());
+				}
+				cl = cl.getSuperclass();
+			} while (cl != null);
+
+			for (Type t : md.getPropertyTypes())
+			{
+				if (t instanceof CustomType)
+				{
+					try {
+						dumpClass (getClass().getClassLoader().loadClass(t.getName()), jar, storedObjects);
+					} catch ( ClassNotFoundException e) {}
+				}
+			}
+		}
+		
+		dumpClass(IdentityGenerator.class, jar, storedObjects);
+		
+		hibernateFile.write("</session-factory>\n</hibernate-configuration>\n".getBytes());
+		hibernateFile.close();
+		
+		jar.putNextEntry(new ZipEntry("hibernate.cfg.xml"));
+		dumpStream(new ByteArrayInputStream(hibernateFile.toByteArray()), jar);
+		jar.closeEntry();
+
+		jar.close();
+	}
+
+	private void dumpClass(Class<?> cl, JarOutputStream jar, HashSet<String> storedObjects) throws IOException {
+		if (! cl.isPrimitive() && cl.getPackage() != null && cl.getPackage().getName().startsWith("java") )
+			return;
+		
+		String resourceName = cl.getCanonicalName().replace('.', '/')+ ".class";
+		if (! storedObjects.contains(resourceName))
+		{
+			storedObjects.add(resourceName);
+			if (dump (resourceName, jar))
+			{
+				for (Field f: cl.getDeclaredFields())
+				{
+					dumpClass(f.getType(), jar, storedObjects);
+				}
+			}
+		}
+	}
+
+	@Override
+	protected void handleRemove(ExecutedReport report)
+			throws Exception {
+		ExecutedReportEntity ere = getExecutedReportEntityDao().load(report.getId());
+		if (ere != null)
+		{
+			Usuari u = getUsuariService().getCurrentUsuari();
+			if (u != null)
+			{
+				for ( Iterator<ExecutedReportTargetEntity> it = ere.getAcl().iterator();
+						it.hasNext();)
+				{
+					ExecutedReportTargetEntity target = it.next ();
+					if (target.getUser() != null && target.getUser().getId().equals(u.getId()))
+					{
+//						getExecutedReportTargetEntityDao().remove(target);
+						target.setReport(null);
+						it.remove();
+					}
+				}
+				if (ere.getAcl().isEmpty())
+				{
+					DocumentService ds = getDocumentService();
+					if (ere.getHtmlDocument() != null)
+						ds.deleteDocument(new DocumentReference(ere.getHtmlDocument()));
+					if (ere.getXmlDocument() != null)
+						ds.deleteDocument(new DocumentReference(ere.getXmlDocument()));
+					if (ere.getPdfDocument() != null)
+						ds.deleteDocument(new DocumentReference(ere.getPdfDocument()));
+					getExecutedReportEntityDao().remove(ere);
+					
+				} else {
+					getExecutedReportEntityDao().update(ere);
+				}
+			}
+		}
+	}
+
+	@Override
+	protected Collection<ScheduledReport> handleFindScheduledReports(String name) throws InternalErrorException {
+		List<ScheduledReport> list;
+		if (name == null || name.trim().length() == 0)
+		{
+			list = getScheduledReportEntityDao().toScheduledReportList(getScheduledReportEntityDao().loadAll());
+		}
+		else
+		{
+			list = getScheduledReportEntityDao().toScheduledReportList(getScheduledReportEntityDao().findByNameFilter(name));
+		}
+		return list;
+	}
+
 }

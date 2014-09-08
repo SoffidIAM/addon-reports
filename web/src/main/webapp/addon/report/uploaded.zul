@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><?page id="lopd" title="Fitxers amb dades de caràcter personal"?>
+<?taglib uri="/WEB-INF/tld/web/core.dsp.tld" prefix="c" ?>
+<?component name="input_criteri" macro-uri="/comu/input_criteri.zul"?>
+<?component name="input_dada" macro-uri="/comu/input_dada.zul"?>
+<?component name="input_etiqueta" macro-uri="/comu/input_etiqueta.zul"?>
+
+<zk>
+	<esquemavertical datamodel="/model" focusCriteri="queryName"
+		id="esquema" onHideFormulari="showLista()">
+	
+		<zscript><![CDATA[
+		    import es.caib.zkib.datasource.XPathUtils;
+		    
+			void search () 
+			{
+				name = queryName.getFellow("textbox").value;
+				es.caib.zkib.component.DataModel dm = model;
+				dm.getJXPathContext().getVariables().declareVariable("report", name);
+				dm.refresh();
+			}
+			
+			void upload ()
+			{
+				org.zkoss.util.media.AMedia amedia = Fileupload.get();
+				com.soffid.iam.addons.report.service.ejb.ReportService ejb = new javax.naming.InitialContext().lookup
+					( com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME )
+						.create ();
+				java.io.InputStream in;
+				if (amedia.isBinary() && amedia.inMemory())
+					in = new java.io.ByteArrayInputStream(amedia.getByteData());
+				else if (amedia.isBinary())
+					in = amedia.getStreamData();
+				else if (! amedia.isBinary() && amedia.inMemory())
+					in = new java.io.ByteArrayInputStream (amedia.getStringData().getBytes());
+				else
+					in = new ReaderInputStream (amedia.getReaderData());
+				ejb.upload(in);
+				ejb.remove();
+				model.refresh ();
+			}
+
+			import java.io.File;
+			
+			void download ()
+			{
+				File tmpDir = new File(System.getProperty("jboss.server.temp.dir"));
+				File f = new File (tmpDir, "ireport-addon.jar");
+				com.soffid.iam.addons.report.service.ejb.ReportService ejb = new javax.naming.InitialContext().lookup
+					( com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME )
+						.create ();
+				ejb.generateDevelopmentEnvironment(new java.io.FileOutputStream (f));
+				ejb.remove();
+
+				org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(f, "binary/octet-stream", null);
+				
+				downloadWindow.setContent(media);
+				downloadWindow.invalidate();
+			}
+		]]></zscript>
+	
+		<criteris height="${queryWindowMin}" id="queryWindow" onOK="search()"
+			width="${amplaria}">
+			<hbox>
+				<input_criteri id="queryName" etiqueta="${msg['report.name']}"/>
+				<imageclic onClick="search()" src="~./img/fletxa_cerca.gif" />
+			</hbox>
+			<separator spacing="9px" />
+		</criteris>
+	
+		<navegador id="lista" width="100%">
+			<toolbar>
+				<toolbarbutton id="uploadButton" if="${canAdminReports}"
+					image="/img/upload.png" label="${msg['report.upload']}"
+					onClick="upload()"/>
+				<toolbarbutton id="downloadButton" if="${canAdminReports}"
+					image="/img/log.png" label="${msg['report.download']}"
+					onClick="download()"/>
+				<commitbutton datamodel="/model" />
+				<undobutton datamodel="/model"
+					listbox="/esquema/lista/listbox" />
+			</toolbar>
+			
+			<grid dataPath="/model:/report" fixedLayout="true"
+				height="96%" id="listbox">
+				<columns>
+					<column label="${msg['report.name']}" width="100%"/>
+					<column label=" " width="32px" align="center"  visible="${canAdminReports}"/>
+					<column label=" " width="32px" align="center"  visible="${canAdminReports}"/>
+				</columns>
+				<datarow>
+					<label bind="@name"/>
+					<imageclic align="center" src="~./img/list-remove.gif">
+						<attribute name="onClick" >
+							if (canAdminReports) {
+								es.caib.zkib.binder.BindContext ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);	
+								name = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@name");
+								Missatgebox.confirmaOK_CANCEL(String.format(msg.get("report.deleteQuestion"), new Object [] {name}),
+									org.zkoss.util.resource.Labels.getLabel("report.delete"),
+									new EventListener() {
+										public void onEvent(Event evt) {
+											if ("onOK".equals(evt.getName())) {
+												es.caib.zkib.datasource.XPathUtils.removePath(ctx.getDataSource(), ctx.getXPath());
+												model.commit();
+											}
+										}
+									});
+							}
+						</attribute>
+					</imageclic>
+					<imageclic src="~./img/vincula.gif" tooltip="vincula"  align="center">
+						<attribute name="onClick" >
+							if (canAdminReports) {
+								es.caib.zkib.binder.BindContext ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);
+								Window w = detailWindow;
+								String path = "/model:"+ctx.getXPath();
+								w.getFellow("detailForm").setDataPath(path);
+								w.setTitle(es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@name"));
+								w.doHighlighted();	
+								
+							}
+						</attribute>
+					</imageclic>
+				</datarow>
+			</grid>
+			
+		</navegador>
+	</esquemavertical>
+
+	<window visible="false" title="" id="detailWindow" width="60em" 
+		onClose="self.setVisible(false); event.stopPropagation(); model.refresh()" closable="true">
+		<form dataPath="/model:/report[1]" width="100%" id="detailForm" style="padding:8px">
+			<div width="100%">
+				<label value="${msg['report.name']}" style="width: 40%; display: inline-block"/>
+				<textbox bind="@name" width="55%"/>
+			</div>
+
+			<label value="${msg['report.parameters']}"></label>
+			<grid dataPath="/parameters" id="paramGrid">
+				<columns>
+					<column label="${msg['parameter.name'] }"/>
+					<column label="${msg['parameter.description'] }"/>
+					<column label="${msg['parameter.type'] }"/>
+				</columns>
+				<datarow>
+					<label bind="@name"></label>
+					<textbox bind="@description"></textbox>
+					<listbox mold="select" bind="@type" dataPath="/model:/paramType">
+						<dataitem bind="@value">
+							<listcell bind="@literal"></listcell>
+						</dataitem>
+					</listbox>
+				</datarow>
+			</grid>
+
+
+
+			<div>
+				<label value="${msg['report.acl']}" style="display:inline-block; padding-top: 10px;"></label>			
+				<div style="float:right; width: auto; display: inline;">
+					<button image="~./img/list-add.gif" label="${msg['acl.type.user'] }">
+						<attribute name="onClick"><![CDATA[
+						Events.postEvent("onInicia", desktop.getPage("usuarisLlista")
+								.getFellow("esquemaLlista"), self);
+						]]></attribute>
+						<attribute name="onActualitza"><![CDATA[
+	   					String user = (String) event.data[0];
+						ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);
+						path = es.caib.zkib.datasource.XPathUtils.createPath(ctx.getDataSource(), ctx.getXPath()+ "/acl", user);
+						]]></attribute>
+					</button>
+					<button image="~./img/list-add.gif" label="${msg['acl.type.group'] }">
+						<attribute name="onClick"><![CDATA[
+       					desktop.getPage("grupsLlista").setAttribute("tipus", "");
+    					desktop.getPage("grupsLlista").setAttribute("llistaObsolets", false);
+    					Events.postEvent("onInicia",
+    							desktop.getPage("grupsLlista").getFellow("esquemaLlista"), self);
+						]]></attribute>
+						<attribute name="onActualitza"><![CDATA[
+	   					String group = (String) event.data[0];
+						ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);
+						path = es.caib.zkib.datasource.XPathUtils.createPath(ctx.getDataSource(), ctx.getXPath()+ "/acl", group);
+						]]></attribute>
+					</button>
+					<button image="~./img/list-add.gif" label="${msg['acl.type.role'] }">
+						<attribute name="onClick"><![CDATA[
+       					desktop.getPage("rolsLlista").setAttribute("tipus", "cap");
+     					desktop.getPage("rolsLlista").setAttribute("mostraGestionableWF",
+     							"true");//perquè mostre rols gestionableWF	
+     					desktop.getPage("rolsLlista").setAttribute("usuari", ""); //??	
+ 						Events.postEvent("onInicia", desktop.getPage("rolsLlista")
+ 								.getFellow("esquemaLlista"), self);
+						]]></attribute>
+						<attribute name="onActualitza"><![CDATA[
+   	   					String role = (String) event.data[0];
+   	   					String system = (String) event.data[5];
+   						ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);
+   						path = es.caib.zkib.datasource.XPathUtils.createPath(ctx.getDataSource(), ctx.getXPath()+ "/acl", role+" @ "+system);
+						]]></attribute>
+					</button>
+				</div>
+			</div>
+			<grid dataPath="/acl" id="aclGrid">
+				<columns>
+					<column label="${msg['acl.type'] }"/>
+					<column label="${msg['acl.name'] }"/>
+					<column label="" width="2em"  valign="top">
+					</column>
+				</columns>
+				<datarow>
+					<label bind="@objectType"></label>
+					<label bind="@objectName"></label>
+					<imageclic align="right" src="~./img/list-remove.gif">
+						<attribute name="onClick">
+							<![CDATA[
+ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext (event.target);
+es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath());
+									]]>
+						</attribute>
+					</imageclic>
+				</datarow>
+			</grid>
+			<div style="float:right">
+				<button image="~./img/document-save.gif" onClick="model.commit(); detailWindow.setVisible(false);" label="${msg['accept']}"></button>
+				<button image="~./img/document-undo.gif" onClick="model.refresh(); detailWindow.setVisible(false);" label="${msg['cancel']}"></button>
+			</div>
+		</form>
+	</window>
+	<iframe height="1" id="downloadWindow" visible="true" width="1"/>
+</zk>

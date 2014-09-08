@@ -7,7 +7,13 @@ import com.soffid.mda.annotation.CriteriaColumn;
 
 @Criteria
 public class ExecutedReportCriteria {
-	@CriteriaColumn(comparator="LIKE_COMPARATOR") String name;
-	@CriteriaColumn(comparator="GREATER_THAN_OR_EQUAL_COMPARATOR") Date fromDate;
-	@CriteriaColumn(comparator="LESS_THAN_OR_EQUAL_COMPARATOR") Date untilDate;
+	@CriteriaColumn(comparator="LIKE_COMPARATOR") 
+	String name;
+	
+	@CriteriaColumn(comparator="GREATER_THAN_OR_EQUAL_COMPARATOR", parameter="date") 
+	Date fromDate;
+	
+	@CriteriaColumn(comparator="LESS_THAN_OR_EQUAL_COMPARATOR", parameter="date") 
+	Date untilDate;
+	
 }

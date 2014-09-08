@@ -25,19 +25,19 @@ public class ScheduledReportParameterEntityDaoImpl extends ScheduledReportParame
 		if (source.getType().equals (ParameterType.DATE_PARAM))
 			target.setValue(source.getDateValue());
 		else if (source.getType().equals (ParameterType.DISPATCHER_PARAM))
-			target.setValue(source.getLongValue());
+			target.setValue(source.getStringValue());
 		else if (source.getType().equals (ParameterType.DOUBLE_PARAM))
 			target.setValue(source.getDoubleValue());
 		else if (source.getType().equals (ParameterType.GROUP_PARAM))
-			target.setValue(source.getLongValue());
+			target.setValue(source.getStringValue());
 		else if (source.getType().equals (ParameterType.IS_PARAM))
-			target.setValue(source.getLongValue());
+			target.setValue(source.getStringValue());
 		else if (source.getType().equals (ParameterType.LONG_PARAM))
-			target.setValue(source.getLongValue());
+			target.setValue(source.getStringValue());
 		else if (source.getType().equals (ParameterType.ROLE_PARAM))
-			target.setValue(source.getLongValue());
+			target.setValue(source.getStringValue());
 		else if (source.getType().equals (ParameterType.USER_PARAM))
-			target.setValue(source.getLongValue());
+			target.setValue(source.getStringValue());
 		else if (source.getType().equals (ParameterType.BOOLEAN_PARAM))
 			target.setValue(source.getBooleanValue());
 		else 
@@ -55,25 +55,26 @@ public class ScheduledReportParameterEntityDaoImpl extends ScheduledReportParame
 								source.getValue() instanceof Calendar ?
 										((Calendar) source.getValue()).getTime():
 										(Date)source.getValue());
-		else if (source.getType().equals (ParameterType.DISPATCHER_PARAM) ||
-				source.getType().equals (ParameterType.GROUP_PARAM) ||
-				source.getType().equals (ParameterType.IS_PARAM) ||
-				source.getType().equals (ParameterType.LONG_PARAM) ||
-				source.getType().equals (ParameterType.ROLE_PARAM) ||
-				source.getType().equals (ParameterType.USER_PARAM))
+		else if (source.getType().equals (ParameterType.LONG_PARAM))
 			target.setLongValue(source.getValue() == null ? null:
 				source.getValue() instanceof Integer ?
 						((Integer) source.getValue()).longValue():
-						(Long)source.getValue());
+							source.getValue() instanceof Long ?
+									(Long)source.getValue():
+									Long.decode(source.toString()));
 		else if (source.getType().equals (ParameterType.DOUBLE_PARAM))
 			target.setDoubleValue(source.getValue() == null ? null:
 				source.getValue() instanceof Float ?
 						((Float) source.getValue()).doubleValue():
-						(Double)source.getValue());
+						source.getValue() instanceof Double ?
+								(Double)source.getValue():
+								Double.parseDouble(source.toString()));
 		else if (source.getType().equals (ParameterType.BOOLEAN_PARAM))
 			target.setBooleanValue(source.getValue() == null ? null:
-				(Boolean)source.getValue());
+				source.getValue() instanceof Boolean ?
+						(Boolean)source.getValue():
+						Boolean.parseBoolean(source.toString()));
 		else 
-			target.setStringValue(source.getValue() == null ? null: source.toString());
+			target.setStringValue(source.getValue() == null ? null: source.getValue().toString());
 	}
 }

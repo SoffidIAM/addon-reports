@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!DOCTYPE hibernate-configuration PUBLIC
+          "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+          "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+  <session-factory>
+
+    <!-- jdbc connection properties -->
+    <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+    <property name="connection.url">jdbc:mysql://localhost/soffid</property>
+    <property name="connection.username">soffid</property>
+    <property name="connection.password">PASSWORD</property>
+    <property name="dialect">org.hibernate.dialect.MySQLInnoDBDialect</property>
+    <property name="connection.pool_size">1</property>
+
+        <property name="hibernate.jdbc.batch_size">0</property>
+
+    <!-- property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>  -->
+    <property name="hibernate.cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+        <property name="hibernate.cache.use_second_level_cache">false</property>
+        <property name="hibernate.cache.use_query_cache">false</property>
+
+
+    <!-- ################################### -->
+    <!-- # common settings                 # -->
+    <!-- ################################### -->
+
+    <!-- Automatic schema creation (begin) 
+         Automatic schema creation (end) -->
+
+    <!-- Simple memory-only cache -->
+    <property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
+
+    <!-- logging properties -->
+    <property name="hibernate.format_sql">true</property>
+    <property name="hibernate.use_sql_comments">true</property>

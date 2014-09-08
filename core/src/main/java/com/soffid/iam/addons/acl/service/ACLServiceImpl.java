@@ -1,8 +1,15 @@
 package com.soffid.iam.addons.acl.service;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import com.soffid.iam.addons.acl.api.AccessControlList;
+
+import es.caib.seycon.ng.comu.RolGrant;
+import es.caib.seycon.ng.model.GrupEntity;
+import es.caib.seycon.ng.model.RolEntity;
+import es.caib.seycon.ng.model.UsuariEntity;
+import es.caib.seycon.ng.model.UsuariGrupEntity;
 
 public class ACLServiceImpl extends ACLServiceBase {
 
@@ -74,6 +81,49 @@ public class ACLServiceImpl extends ACLServiceBase {
 		}
 		return false;
 	}
+
+	@Override
+	protected AccessControlList handleExpandACL(AccessControlList acl)
+			throws Exception {
+		AccessControlList acl2 = new AccessControlList();
+		acl2.setGroups( new HashSet<Long>());
+		acl2.setUsers( new HashSet<Long>());
+		acl2.setRoles( new HashSet<Long>());
+		
+		acl2.getUsers().addAll(acl2.getUsers());
+		for (Long groupId: acl.getGroups())
+		{
+			GrupEntity ge = getGrupEntityDao().load(groupId);
+			addGroupMembers (ge, acl2.getUsers());
+		}
+
+		for (Long roleId: acl.getRoles())
+		{
+			for (RolGrant grant: getAplicacioService().findEffectiveRolGrantsByRolId(roleId))
+			{
+				if (grant.getUser() != null)
+				{
+					UsuariEntity ue = getUsuariEntityDao().findByCodi(grant.getUser());
+					if (ue != null)
+						acl2.getUsers().add(ue.getId());
+				}
+			}
+		}
+		
+		return acl2;
+		
+	}
+
+	private void addGroupMembers(GrupEntity ge, Set<Long> users) {
+		for ( UsuariEntity ue: ge.getUsuarisGrupPrimari())
+			users.add(ue.getId());
+
+		for ( UsuariGrupEntity ue: ge.getUsuarisGrupSecundari())
+			users.add(ue.getUsuari().getId());
+		
+		for (GrupEntity child: ge.getFills())
+			addGroupMembers(child, users);
+}
 
 
 }

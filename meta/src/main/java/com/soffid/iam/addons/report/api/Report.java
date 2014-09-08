@@ -11,5 +11,5 @@ public class Report {
 	Long id;
 	String name;
 	Collection<String> acl;
-	Collection<ReportParameter> parameters;
+	@Nullable Collection<ReportParameter> parameters;
 }

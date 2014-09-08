@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?taglib uri="/WEB-INF/tld/web/core.dsp.tld" prefix="c" ?>
+<?component name="input_criteri" macro-uri="/comu/input_criteri.zul"?>
+<?component name="input_dada" macro-uri="/comu/input_dada.zul"?>
+<?component name="input_etiqueta" macro-uri="/comu/input_etiqueta.zul"?>
+<zk xmlns:h="http://www.w3.org/1999/xhtml">
+
+	<style src="~./styles/estil.css"/>
+
+	<datamodel id="model" rootNode="root" src="addon/report/descriptorReport.xml"/>
+	
+	<zscript><![CDATA[
+		boolean canScheduleReports = Executions.getCurrent().isUserInRole("report:schedule");
+		boolean canAdminReports = Executions.getCurrent().isUserInRole("report:admin");
+		com.soffid.iam.addons.report.web.Messages msg = new com.soffid.iam.addons.report.web.Messages();
+	]]></zscript>
+	
+	<frame saveContent="true"
+		title="${c:l('reports.menu')}" width="99%">
+		<tabbox>
+			<tabs>
+				<tab label="${msg['report.executedReports'] }" ></tab>
+				<tab label="${msg['report.scheduledReports'] }" if="${canScheduleReports }"></tab>
+				<tab label="${msg['report.definedReports'] }" if="${canAdminReports}"></tab>
+			</tabs>
+			<tabpanels>
+				<tabpanel><embed src="/addon/report/executed.zul" id="executed"/></tabpanel>
+				<tabpanel if="${canScheduleReports }"><embed src="/addon/report/scheduled.zul" id="scheduled"/></tabpanel>
+				<tabpanel if="${canAdminReports }"><embed src="/addon/report/uploaded.zul" id="uploaded"/></tabpanel>
+			</tabpanels>
+		</tabbox>
+	</frame>
+
+	
+	<embed id="wizardEmbed" src="/addon/report//wizard.zul"/> 
+	<include src="usuarisllista.zul"/> 
+    <include src="grupsllista.zul"/>
+	<include src="rolsllista.zul"/>
+	<include src="aplicacionsllista.zul"/>
+	<iframe height="1" id="downloadWindow" visible="true" width="1"/>
+</zk>

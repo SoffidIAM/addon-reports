@@ -164,7 +164,7 @@
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-common</artifactId>
-			<version>1.4.0</version>
+			<version>${console.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-beanutils</groupId>
@@ -175,7 +175,6 @@
 			<artifactId>signaturacaib.core</artifactId>
 			<version>3.3.0</version>
 			<classifier>api</classifier>
-			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

@@ -24,6 +24,7 @@ public class ReportParameterEntityDaoImpl extends ReportParameterEntityDaoBase
 	public void reportParameterToEntity(ReportParameter source,
 			ReportParameterEntity target, boolean copyIfNull) {
 		super.reportParameterToEntity(source, target, copyIfNull);
-		target.setReport(getReportEntityDao().load(source.getReportId()));
+		if (source.getReportId() != null)
+			target.setReport(getReportEntityDao().load(source.getReportId()));
 	}
 }

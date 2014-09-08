@@ -25,4 +25,6 @@ public class ACLService extends Object {
 	boolean isAccountIncluded (long userId, AccessControlList acl) { return false; }
 
 	AccessControlList expandUser (long userId) { return null;}
+
+	AccessControlList expandACL (AccessControlList acl) { return null;}
 }

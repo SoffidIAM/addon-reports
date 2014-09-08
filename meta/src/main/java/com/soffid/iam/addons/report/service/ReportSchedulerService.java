@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.soffid.iam.addons.doc.api.DocumentReference;
+import com.soffid.iam.addons.acl.service.ACLService;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.api.ScheduledReport;
@@ -14,6 +14,7 @@ import com.soffid.iam.addons.report.model.ExecutedReportParameterEntity;
 import com.soffid.iam.addons.report.model.ExecutedReportTargetEntity;
 import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
+import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.mda.annotation.Depends;
 import com.soffid.mda.annotation.Description;
 import com.soffid.mda.annotation.Service;
@@ -22,7 +23,8 @@ import es.caib.seycon.ng.model.UsuariEntity;
 
 @Service(internal=true)
 @Depends({ReportService.class, ExecutedReportEntity.class, ScheduledReportEntity.class, 
-		ReportEntity.class, UsuariEntity.class, ExecutedReportTargetEntity.class, ExecutedReportParameterEntity.class})
+		ReportEntity.class, UsuariEntity.class, ExecutedReportTargetEntity.class, ExecutedReportParameterEntity.class,
+		ACLService.class})
 public class ReportSchedulerService {
 
 	@Description ("Guess the next scheduled report to schedule")

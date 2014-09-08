@@ -5,15 +5,16 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import com.soffid.mda.annotation.Attribute;
+import com.soffid.mda.annotation.Nullable;
 import com.soffid.mda.annotation.ValueObject;
 
 @ValueObject
 public class AccessControlList {
-	@Attribute (defaultValue="new java.util.HashSet<Long>()")
+	@Nullable @Attribute (defaultValue="new java.util.HashSet<Long>()")
 	Set<Long> users;
-	@Attribute (defaultValue="new java.util.HashSet<Long>()")
+	@Nullable @Attribute (defaultValue="new java.util.HashSet<Long>()")
 	Set<Long> roles; 
-	@Attribute (defaultValue="new java.util.HashSet<Long>()")
+	@Nullable @Attribute (defaultValue="new java.util.HashSet<Long>()")
 	Set<Long> groups;	
 }
  
