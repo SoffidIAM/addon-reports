@@ -7,7 +7,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>report-core</artifactId>
 	<packaging>ejb</packaging>
-	<name>Backup Core Business Tier</name>
+	<name>Reports Core Business Tier</name>
 
 	<build>
 		<resources>
@@ -279,10 +279,35 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.soffid.iam.sync</groupId>
-			<artifactId>syncserver</artifactId>
-			<version>1.2.3</version>
-			<scope>provided</scope>
+			<groupId>axis</groupId>
+			<artifactId>axis</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.10.0</version>
+			<scope>test</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
+			<version>1.4.01</version>
+			<scope>test</scope>
 			<optional>true</optional>
 		</dependency>
 		<dependency>

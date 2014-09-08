@@ -8,7 +8,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>report-web</artifactId>
 	<packaging>war</packaging>
-	<name>Backup Web</name>
+	<name>Reports addon Web</name>
 	<build>
 		<resources>
 			<resource>
@@ -100,14 +100,14 @@
 		<dependency>
 			<groupId>com.soffid.zkib</groupId>
 			<artifactId>zkiblaf</artifactId>
-			<version>1.10</version>
+			<version>1.12</version>
 			<classifier>classes</classifier>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.soffid.zkib</groupId>
 			<artifactId>zkdb</artifactId>
-			<version>1.10</version>
+			<version>1.12</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
