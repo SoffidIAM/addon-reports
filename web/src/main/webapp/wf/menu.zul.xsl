@@ -12,7 +12,7 @@
 		</zul:zscript>
 	</xsl:template>
 	
-	<xsl:template match="zul:tree/zul:treechildren/zul:treeitem[1]/zul:treechildren" priority="3">
+	<xsl:template match="zul:tree/zul:treechildren/zul:treeitem[4]/zul:treechildren" priority="3">
 		<xsl:copy>
 			<xsl:apply-templates select="node()|@*" />
 			<zul:treeitem>

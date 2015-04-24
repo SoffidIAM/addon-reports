@@ -10,6 +10,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
@@ -41,6 +42,7 @@ import com.soffid.iam.addons.report.api.ParameterValue;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 
+import es.caib.seycon.ng.ServiceLocator;
 import es.caib.seycon.ng.exception.InternalErrorException;
 
 public class ExecutorThread extends Thread {
@@ -73,7 +75,16 @@ public class ExecutorThread extends Thread {
 	}
 
 	private ReportSchedulerService reportSchedulerService;
+	private ReportService reportService;
 	private boolean end = false;
+
+	public ReportService getReportService() {
+		return reportService;
+	}
+
+	public void setReportService(ReportService reportService) {
+		this.reportService = reportService;
+	}
 
 	private DocumentService documentService;
 
@@ -105,19 +116,28 @@ public class ExecutorThread extends Thread {
 				log.info("Looking for reports to execute");
 				for (ExecutedReport sr : reportSchedulerService.getPendingReports())
 				{
-					try {
-						log.info("Executing report "+sr.getName());
-						execute (sr);
-						sr.setDone(true);
-						sr.setError(false);
-						sr.setErrorMessage(null);
-						reportSchedulerService.updateReport(sr);
-					} catch (Exception e) {
-						log.info("Errr executing report "+sr.getName(), e);
-						sr.setDone(true);
-						sr.setError(true);
-						sr.setErrorMessage(e.toString());
-						reportSchedulerService.updateReport(sr);
+					if (sr.getUsers() == null || sr.getUsers().isEmpty())
+					{
+						sr.setUsers(new LinkedList<String>());
+						sr.getUsers().add("dummy");
+						reportService.remove(sr);
+					}
+					else
+					{
+						try {
+							log.info("Executing report "+sr.getName());
+							execute (sr);
+							sr.setDone(true);
+							sr.setError(false);
+							sr.setErrorMessage(null);
+							reportSchedulerService.updateReport(sr);
+						} catch (Exception e) {
+							log.info("Errr executing report "+sr.getName(), e);
+							sr.setDone(true);
+							sr.setError(true);
+							sr.setErrorMessage(e.toString());
+							reportSchedulerService.updateReport(sr);
+						}
 					}
 				}
 	

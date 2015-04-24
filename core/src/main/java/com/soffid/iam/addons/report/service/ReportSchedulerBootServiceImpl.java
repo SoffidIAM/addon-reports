@@ -43,6 +43,7 @@ public class ReportSchedulerBootServiceImpl extends
 		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
 		ExecutorThread executorThread = ExecutorThread.getInstance();
 		executorThread.setReportSchedulerService(getReportSchedulerService());
+		executorThread.setReportService(getReportService());
 		executorThread.setSessionFactory(sessionFactory);
 		executorThread.setDocumentService(getDocumentService());
 		

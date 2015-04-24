@@ -111,7 +111,7 @@
 			</hbox>
 			<hbox>
 				<label sclass="etiqueta" style="display:inline-block;" value="${msg['report.name']}" width="100px"/>
-				<textbox onChange="" id="queryName" width="400px" bind="/model:/query[1]/@name"/>
+				<textbox onChange="" id="queryName" width="120px" bind="/model:/query[1]/@name"/>
 				<imageclic onClick="search()" src="~./img/fletxa_cerca.gif" style="margin-left: 280px"/>
 			</hbox>
 		</criteris>
