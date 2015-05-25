@@ -6,8 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -32,6 +35,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.classic.Session;
 import org.springframework.context.ApplicationContext;
+
+import bsh.EvalError;
+import bsh.Interpreter;
 
 import com.soffid.iam.doc.api.DocumentOutputStream;
 import com.soffid.iam.doc.api.DocumentReference;
@@ -158,7 +164,7 @@ public class ExecutorThread extends Thread {
 		log.info ("Finished.");
 	}
 
-	private void execute(ExecutedReport sr) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException 
+	private void execute(ExecutedReport sr) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException, EvalError 
 	{
 		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
 
@@ -209,8 +215,29 @@ public class ExecutorThread extends Thread {
 		{ 
 			v.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
 	        // preparamos para imprimir
-	        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport,
-	                v);
+			JasperPrint jasperPrint;
+			if (jasperReport.getQuery().getLanguage().equals("bsh"))
+			{
+				Interpreter interp = new Interpreter();
+				interp.eval("import es.caib.seycon.ng.comu.*;");
+				interp.eval("import es.caib.seycon.ng.servei.*;");
+				interp.eval("import es.caib.seycon.ng.ServiceLocator;");
+				try
+				{
+					String hostName = InetAddress.getLocalHost().getHostName();
+					interp.set("serverName", hostName);
+				} catch (Throwable t) {}
+				Object result  = interp.eval(jasperReport.getQuery().getText());
+				@SuppressWarnings("unchecked")
+				Collection<Object> coll = result instanceof Collection ? 
+						(Collection<Object>)  result: 
+						Collections.singleton(result);
+				jasperPrint = JasperFillManager.fillReport(jasperReport, v, new SoffidJRDataSource(coll));
+			}
+			else
+			{
+				jasperPrint = JasperFillManager.fillReport(jasperReport, v);
+			}
 	
 	        if (jasperPrint.getPages().size() > 0) {
 	        	File outFile = File.createTempFile("report", "pdf");

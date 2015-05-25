@@ -141,4 +141,23 @@ public class Test extends AbstractHibernateTest {
 		docSvc.closeDocument();
 	}
 
+	public void testUpload2 () throws InternalErrorException, IOException, InterruptedException, IllegalArgumentException, DocumentBeanException
+	{
+		Security.nestedLogin("admin", new String [] {});
+		try {
+			FileInputStream in = new FileInputStream ("./src/test/reports/users-bsh.jasper");
+			Report r = reportSvc.upload(in);
+			in.close();
+			
+			assertNotNull(r.getId());
+			
+			assert(r.getParameters().size() == 1);
+			
+			executeReport(r);
+		}
+		finally {
+			Security.nestedLogoff();
+		}
+	}
+
 }
