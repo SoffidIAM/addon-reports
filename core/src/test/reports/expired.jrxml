@@ -23,7 +23,7 @@ join ctr.usuari as usu
 join usu.grupPrimari as gr
 where ctr.ordre=0 and ctr_datcad <= current_timestamp()
 and ctr.actiu != 'D' and usu.actiu = 'S'
-order by 1, 3,4,2]]>
+order by 1, 3,4,2 ]]>
 	</queryString>
 	<field name="group" class="java.lang.String"/>
 	<field name="firstName" class="java.lang.String"/>

@@ -133,6 +133,27 @@
 					<generateClient>false</generateClient>
 				</configuration>
 			</plugin>
+		      <plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-shade-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <id>afefeixdeps</id>
+		            <phase>package</phase>
+		            <goals>
+		              <goal>shade</goal>
+		            </goals>
+		            <configuration>
+			      <createDependencyReducedPom>false</createDependencyReducedPom>
+		              <artifactSet>
+		                <includes>
+		                  <include>net.sf.jasperreports:jasperreports</include>
+		                </includes>
+		              </artifactSet>
+		            </configuration>
+		          </execution>
+		        </executions>
+      </plugin>
     <plugin>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-compiler-plugin</artifactId>
@@ -321,6 +342,12 @@
 			<version>3.3.0</version>
 			<classifier>api</classifier>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+			<version>5.5.2</version>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>hsqldb</groupId>
