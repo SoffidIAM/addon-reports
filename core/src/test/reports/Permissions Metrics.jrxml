@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Permissions Metrics" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="b4e7f864-6628-4662-b8b6-c15b45b0a4db">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<queryString language="hql">
+		<![CDATA[select app.codi as AppName, app.nom as AppDescription, COUNT(DISTINCT acc.id) as Users, COUNT(DISTINCT rlu.id) AS Roles
+from   es.caib.seycon.ng.model.AplicacioEntity as app
+left outer join app.rols as role
+left outer join role.accounts as rlu
+left outer join rlu.account as acc
+group by 1,2
+order by 1,2]]>
+	</queryString>
+	<field name="AppName" class="java.lang.String"/>
+	<field name="AppDescription" class="java.lang.String"/>
+	<field name="Users" class="java.lang.Long"/>
+	<field name="Roles" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="30" splitType="Stretch">
+			<frame>
+				<reportElement key="frame" mode="Opaque" x="-20" y="-20" width="595" height="50" backcolor="#006699" uuid="83ee8639-c9f4-4e6d-b6d2-f83e2684e750"/>
+				<staticText>
+					<reportElement key="staticText" x="20" y="20" width="186" height="23" forecolor="#FFFFFF" uuid="9708c6a2-1c28-4d27-ab67-29f2073a433c"/>
+					<textElement>
+						<font size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Permissions metrics]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText" x="335" y="23" width="240" height="20" forecolor="#FFFFFF" uuid="087c849b-57bf-4a2c-aa2e-cce54198080c"/>
+					<textElement textAlignment="Right">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Number of users by applications]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="3" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="24" splitType="Stretch">
+			<line>
+				<reportElement key="line" x="-20" y="-13" width="595" height="1" forecolor="#666666" uuid="3e502e5c-e9f3-4fa8-b2d4-13379e0561c8"/>
+			</line>
+			<line>
+				<reportElement key="line" positionType="FixRelativeToBottom" x="0" y="19" width="555" height="1" uuid="6612a30c-b393-48ef-9a2e-c310e7f5d108"/>
+			</line>
+			<staticText>
+				<reportElement key="staticText-1" x="0" y="5" width="69" height="14" uuid="6c6ee583-c87e-46e5-aabe-7c259ca86229"/>
+				<text><![CDATA[Application]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-2" x="100" y="5" width="69" height="14" uuid="c280082c-e2b9-4375-a3f0-0097b9636644"/>
+				<text><![CDATA[Description]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-3" x="413" y="5" width="69" height="14" uuid="8b677d44-a528-4c26-adbd-6b6b0e0e21dd"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[Users]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-4" x="482" y="5" width="69" height="14" uuid="3caf46cc-f836-496a-8dcc-b2d83d1af826"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[Permissions]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-1" x="0" y="0" width="90" height="14" uuid="fa3257a1-b93c-4260-b5cc-c8bdabf04c42"/>
+				<textFieldExpression><![CDATA[$F{AppName}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="textField-2" x="100" y="0" width="313" height="14" uuid="af73e2b2-3064-494e-9133-548ec7c1829a"/>
+				<textFieldExpression><![CDATA[$F{AppDescription}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="false">
+				<reportElement key="textField-3" x="413" y="0" width="69" height="14" uuid="07996242-b7d9-4320-ace6-eab2308f91e6"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{Users}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="false">
+				<reportElement key="textField-4" x="482" y="0" width="69" height="14" uuid="0d98fa19-b252-43c7-a0b5-1deb47851e53"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{Roles}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="17" splitType="Stretch">
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" mode="Opaque" x="0" y="4" width="515" height="13" backcolor="#E6E6E6" uuid="963b828d-5795-48b5-98fe-404f6cced17f"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="false">
+				<reportElement key="textField" mode="Opaque" x="515" y="4" width="40" height="13" backcolor="#E6E6E6" uuid="4711e6b3-0d0c-44fa-a53b-46981c6735b9"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="EEEEE dd MMMMM yyyy" isBlankWhenNull="false">
+				<reportElement key="textField" x="0" y="4" width="100" height="13" uuid="7cd47b9c-9272-457a-a490-6ded8b4de60d"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

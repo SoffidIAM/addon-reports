@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Users without business role" language="groovy" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="181f7f32-3d45-4ef7-a877-f7051213fdf7">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="99"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="Application" class="java.lang.String">
+		<parameterDescription><![CDATA[Identifies the application to take as reference]]></parameterDescription>
+		<defaultValueExpression><![CDATA[BUSINESSROLES]]></defaultValueExpression>
+	</parameter>
+	<queryString language="hql">
+		<![CDATA[select gr.descripcio as Department, us.codi as User, us.nom as Name,
+       us.primerLlinatge as SurName
+from   es.caib.seycon.ng.model.UsuariEntity as us
+join   us.grupPrimari as gr
+where  us.id not in (
+   select us2.id
+   from   es.caib.seycon.ng.model.AplicacioEntity as app
+   left outer join  app.rols as rol
+   left outer join  rol.accounts as ra
+   left outer join  ra.account as account with account.type='U'
+   left outer join  account.users as au
+   left outer join  au.user as us2
+   where app.codi=$P{Application})]]>
+	</queryString>
+	<field name="Department" class="java.lang.String"/>
+	<field name="User" class="java.lang.String"/>
+	<field name="Name" class="java.lang.String"/>
+	<field name="SurName" class="java.lang.String"/>
+	<group name="Department">
+		<groupExpression><![CDATA[$F{Department}]]></groupExpression>
+		<groupHeader>
+			<band height="21">
+				<textField isStretchWithOverflow="true">
+					<reportElement mode="Transparent" x="-1" y="0" width="555" height="15" forecolor="#006699" backcolor="#E6E6E6" uuid="cb69ce98-b1c2-4ebe-be88-723e4c298a65"/>
+					<textElement>
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{Department}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band height="72">
+			<frame>
+				<reportElement mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699" uuid="00827a92-e669-40bc-bfb7-d962fc64a045"/>
+				<staticText>
+					<reportElement x="20" y="20" width="234" height="43" forecolor="#FFFFFF" uuid="67ba9a78-bd36-4072-a62d-16b86e1a2f3f"/>
+					<textElement>
+						<font size="14" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Users without business role]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="377" y="20" width="197" height="25" forecolor="#FDFBFB" uuid="2905165d-af42-4844-94ef-3f3fc447ce32"/>
+					<textFieldExpression><![CDATA["Display any users that has no role on\n"+
+"system "+$P{Application}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="13"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="21">
+			<line>
+				<reportElement x="-20" y="20" width="595" height="1" forecolor="#666666" uuid="a563a586-0bb2-47e0-8d8c-953c6cfcebec"/>
+			</line>
+			<staticText>
+				<reportElement mode="Transparent" x="193" y="0" width="73" height="20" forecolor="#006699" backcolor="#E6E6E6" uuid="322b362c-0ca5-41c2-82a6-901fc1b7d097"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[User]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Transparent" x="277" y="0" width="277" height="20" forecolor="#006699" backcolor="#E6E6E6" uuid="8add1192-5368-40d6-b839-bbe99977ea79"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FullName]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="193" y="0" width="84" height="10" uuid="3e9fe74c-65f2-4fd0-a369-67507c6b77de"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{User}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="278" y="0" width="277" height="10" uuid="b91f06f4-2695-485b-9b43-3b39b0cb94a9"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Name}+" "+$F{SurName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band/>
+	</columnFooter>
+	<pageFooter>
+		<band height="17">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="4" width="515" height="13" backcolor="#E6E6E6" uuid="67d84b6b-bf40-458f-b537-e3fc99cf8647"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="515" y="4" width="40" height="13" backcolor="#E6E6E6" uuid="eb3400f5-459d-4a9c-b7d4-4bbe435bf4a1"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement x="0" y="4" width="100" height="13" uuid="a5b9a817-04a7-46cc-a625-316d2d751620"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band/>
+	</summary>
+</jasperReport>
