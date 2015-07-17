@@ -21,4 +21,5 @@ public class ExecutedReport {
 	@Nullable String pdfDocument;
 	@Nullable String xmlDocument;
 	@Nullable String htmlDocument;
+	@Nullable String csvDocument;
 }

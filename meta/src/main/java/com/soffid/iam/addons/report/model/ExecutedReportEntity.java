@@ -37,6 +37,9 @@ public class ExecutedReportEntity {
 	@Column(name="ERE_XMLDOC", length=128)
 	String xmlDocument;
 	
+	@Nullable
+	@Column(name="ERE_CSVDOC", length=128)
+	String csvDocument;
 
 	@Column(name="ERE_DONE", defaultValue="false")
 	boolean done;

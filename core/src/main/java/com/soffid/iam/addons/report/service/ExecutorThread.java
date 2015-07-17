@@ -2,11 +2,11 @@ package com.soffid.iam.addons.report.service;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Collection;
@@ -14,41 +14,40 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import javax.ejb.CreateException;
-import javax.naming.NamingException;
-
+import net.sf.jasperreports.engine.JRBand;
+import net.sf.jasperreports.engine.JRChild;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.JRSubreport;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.query.JRHibernateQueryExecuter;
+import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
 
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.classic.Session;
-import org.springframework.context.ApplicationContext;
 
 import bsh.EvalError;
 import bsh.Interpreter;
 
+import com.soffid.iam.addons.report.api.ExecutedReport;
+import com.soffid.iam.addons.report.api.ParameterValue;
+import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.doc.api.DocumentOutputStream;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
-import com.soffid.iam.addons.report.api.ExecutedReport;
-import com.soffid.iam.addons.report.api.ParameterValue;
-import com.soffid.iam.addons.report.api.Report;
-import com.soffid.iam.addons.report.api.ScheduledReport;
 
-import es.caib.seycon.ng.ServiceLocator;
 import es.caib.seycon.ng.exception.InternalErrorException;
 
 public class ExecutorThread extends Thread {
@@ -166,14 +165,18 @@ public class ExecutorThread extends Thread {
 
 	private void execute(ExecutedReport sr) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException, EvalError 
 	{
+		File srcdir = Files.createTempDirectory("soffid-report").toFile();
+		srcdir.mkdir();
 		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
 
-		File f = getDocument(r);
+		File f = getDocument(srcdir, r);
 				
 		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (f);
-		f.delete();
 		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
-
+		
+		List<File> children = new LinkedList<File>();
+		downloadChildren(srcdir, children, jasperReport);
+		
 		Map<String,Object> v = new HashMap<String, Object>();
 		for (JRParameter jp: jasperReport.getParameters())
 		{
@@ -209,35 +212,14 @@ public class ExecutorThread extends Thread {
 			}
 		}
 		
-		
 		Session session = sessionFactory.openSession();
 		try
 		{ 
 			v.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
 	        // preparamos para imprimir
 			JasperPrint jasperPrint;
-			if (jasperReport.getQuery().getLanguage().equals("bsh"))
-			{
-				Interpreter interp = new Interpreter();
-				interp.eval("import es.caib.seycon.ng.comu.*;");
-				interp.eval("import es.caib.seycon.ng.servei.*;");
-				interp.eval("import es.caib.seycon.ng.ServiceLocator;");
-				try
-				{
-					String hostName = InetAddress.getLocalHost().getHostName();
-					interp.set("serverName", hostName);
-				} catch (Throwable t) {}
-				Object result  = interp.eval(jasperReport.getQuery().getText());
-				@SuppressWarnings("unchecked")
-				Collection<Object> coll = result instanceof Collection ? 
-						(Collection<Object>)  result: 
-						Collections.singleton(result);
-				jasperPrint = JasperFillManager.fillReport(jasperReport, v, new SoffidJRDataSource(coll));
-			}
-			else
-			{
-				jasperPrint = JasperFillManager.fillReport(jasperReport, v);
-			}
+
+			jasperPrint = JasperFillManager.fillReport(jasperReport, v);
 	
 	        if (jasperPrint.getPages().size() > 0) {
 	        	File outFile = File.createTempFile("report", "pdf");
@@ -275,11 +257,62 @@ public class ExecutorThread extends Thread {
 	        	jar.close ();
 	        	sr.setHtmlDocument(documentService.getReference().toString());
 	        	documentService.closeDocument();
+	        	
+	        	documentService.createDocument("text/csv", sr.getName()+".csv", "report");
+	        	out = new DocumentOutputStream(documentService);
+	        	JRCsvExporter exporterCSV = new JRCsvExporter(); 
+	        	exporterCSV.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
+	        	exporterCSV.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
+	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
+	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
+	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+	        	exporterCSV.exportReport(); 
+	        	out.close ();
+	        	sr.setCsvDocument(documentService.getReference().toString());
+	        	documentService.closeDocument();
 	        }
 		} finally {
+			f.delete();
+			for (File f2: children)
+				f2.delete();
+			srcdir.delete();
 	        session.clear();
 	        session.close();
         	documentService.closeDocument();
+		}
+	}
+
+	private void downloadChildren(File srcdir, List<File> files, JasperReport jasperReport) throws DocumentBeanException, InternalErrorException, IOException {
+		for (JRBand band: jasperReport.getAllBands())
+		{
+			for ( JRChild child : band.getChildren())
+			{
+				if (child instanceof JRSubreport)
+				{
+					JRSubreport sr = (JRSubreport) child;
+					String expression = sr.getExpression().getText();
+					int i = expression.lastIndexOf('\"');
+					if ( i >= 0) expression = expression.substring(0, i);
+					i = expression.lastIndexOf('\"');
+					if ( i >= 0) expression.substring(i+1);
+					i = expression.lastIndexOf('\\');
+					if ( i >= 0) expression.substring(i+1);
+					i = expression.lastIndexOf('/');
+					if ( i >= 0) expression.substring(i+1);
+					File f = new File (srcdir, expression+".jasper");
+					if (! files.contains(f))
+					{
+						Collection<Report> reports = reportService.findReports(expression, true);
+						if (reports == null || reports.isEmpty())
+							throw new InternalErrorException ("Cannot find subreport "+expression);
+						for (Report report: reports)
+						{
+							DocumentReference ref = reportSchedulerService.getReportDocument(report.getId());
+							files.add (getDocument(srcdir, ref));
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -294,9 +327,9 @@ public class ExecutorThread extends Thread {
 		jar.closeEntry();
 	}
 
-	private File getDocument(DocumentReference ref) throws DocumentBeanException, InternalErrorException, IOException {
+	private File getDocument(File dir, DocumentReference ref) throws DocumentBeanException, InternalErrorException, IOException {
 		documentService.openDocument(ref);
-		File f =  File.createTempFile("report", "rpt");
+		File f =  new File(dir, documentService.getExternalName()+".jasper");
 		FileOutputStream out = new FileOutputStream(f);
 		documentService.openDownloadTransfer();
 		do

@@ -148,6 +148,7 @@
 		              <artifactSet>
 		                <includes>
 		                  <include>net.sf.jasperreports:jasperreports</include>
+		                  <include>org.codehaus.groovy:groovy-all</include>
 		                </includes>
 		              </artifactSet>
 		            </configuration>
@@ -356,11 +357,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.soffid.iam.console</groupId>
-			<artifactId>document-manager-ejb</artifactId>
-			<version>1.4.0-1</version>
-			<type>ejb</type>
-			<scope>test</scope>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>1.7.6</version>
 		</dependency>
 	</dependencies>
 </project>
