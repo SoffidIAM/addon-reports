@@ -27,9 +27,9 @@
 		<parameterDescription><![CDATA[User name Pattern]]></parameterDescription>
 		<defaultValueExpression ><![CDATA["%"]]></defaultValueExpression>
 	</parameter>
-	<queryString language="hql"><![CDATA[select usu.nom as firstname, usu.primerLlinatge as lastname
-from   es.caib.seycon.ng.model.UsuariEntity as usu
-where  usu.codi like $P{userName}]]></queryString>
+	<queryString language="hql"><![CDATA[select usu.firstName as firstname, usu.lastName as lastname
+from   com.soffid.iam.model.UserEntity as usu
+where  usu.userName like $P{userName}]]></queryString>
 
 	<field name="firstname" class="java.lang.String"/>
 	<field name="lastname" class="java.lang.String"/>

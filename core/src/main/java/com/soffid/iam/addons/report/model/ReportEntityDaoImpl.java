@@ -27,11 +27,11 @@ public class ReportEntityDaoImpl extends ReportEntityDaoBase
 		for (ReportACLEntity ace: source.getAcl())
 		{
 			if (ace.getUser() != null)
-				users.add(ace.getUser().getCodi());
+				users.add(ace.getUser().getUserName());
 			else if (ace.getGroup() != null)
-				users.add(ace.getGroup().getCodi());
+				users.add(ace.getGroup().getName());
 			else if (ace.getRole() != null)
-				users.add(ace.getRole().getNom()+" @ "+ace.getRole().getBaseDeDades().getCodi());
+				users.add(ace.getRole().getName()+" @ "+ace.getRole().getSystem().getName());
 		}
 		target.setAcl(users);
 		target.setParameters(getReportParameterEntityDao().toReportParameterList(source.getParameters()));
@@ -49,9 +49,10 @@ public class ReportEntityDaoImpl extends ReportEntityDaoBase
 			for (Iterator<String> it2 = newElements.iterator(); it2.hasNext(); )
 			{
 				String user = it2.next();
-				if (old.getUser() != null && old.getUser().getCodi().equals (user) ||
-						old.getGroup() != null && old.getGroup().getCodi().equals (user) ||
-						old.getRole() != null && user.equals(old.getRole().getNom()+" @ "+old.getRole().getBaseDeDades().getCodi()))
+				if (old.getUser() != null && old.getUser().getUserName().equals (user) ||
+						old.getGroup() != null && old.getGroup().getName().equals (user) ||
+						old.getRole() != null && user.equals(old.getRole().getName()+" @ "+
+								old.getRole().getSystem().getName()))
 				{
 					it2.remove();
 					found = true;
@@ -67,11 +68,11 @@ public class ReportEntityDaoImpl extends ReportEntityDaoBase
 		for (String user: newElements)
 		{
 			ReportACLEntity ace = getReportACLEntityDao().newReportACLEntity();
-			ace.setUser( getUsuariEntityDao().findByCodi(user) );
-			ace.setGroup(getGrupEntityDao().findByCodi(user) );
+			ace.setUser( getUserEntityDao().findByUserName(user) );
+			ace.setGroup(getGroupEntityDao().findByName(user) );
 			int i = user.indexOf(" @ ");
 			if ( i > 0)
-				ace.setRole( getRolEntityDao().findByNameAndDispatcher(user.substring(0, i), user.substring(i+3)));
+				ace.setRole( getRoleEntityDao().findByNameAndSystem(user.substring(0, i), user.substring(i+3)));
 			ace.setReport(target);
 			target.getAcl().add(ace);
 		}

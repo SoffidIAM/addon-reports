@@ -25,7 +25,7 @@ public class ExecutedReportEntityDaoImpl extends ExecutedReportEntityDaoBase
 		Collection<String> users = new LinkedList<String>();
 		for (ExecutedReportTargetEntity erte: source.getAcl())
 		{
-			users.add(erte.getUser().getCodi());
+			users.add(erte.getUser().getUserName());
 		}
 		target.setUsers(users);
 		target.setParams(getExecutedReportParameterEntityDao().toParameterValueList(source.getParameters()));
@@ -45,7 +45,7 @@ public class ExecutedReportEntityDaoImpl extends ExecutedReportEntityDaoBase
 			boolean found = false;
 			for (ExecutedReportTargetEntity old: olds)
 			{
-				if (old.getUser().getCodi().equals (user))
+				if (old.getUser().getUserName().equals (user))
 				{
 					olds.remove(old);
 					found = true;
@@ -56,7 +56,7 @@ public class ExecutedReportEntityDaoImpl extends ExecutedReportEntityDaoBase
 			{
 				ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
 				erte.setReport(target);
-				erte.setUser( getUsuariEntityDao().findByCodi(user));
+				erte.setUser( getUserEntityDao().findByUserName(user));
 				target.getAcl().add(erte);
 			}
 		}

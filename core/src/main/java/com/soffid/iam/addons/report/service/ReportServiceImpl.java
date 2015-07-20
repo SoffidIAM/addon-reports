@@ -62,11 +62,12 @@ import com.soffid.iam.addons.report.model.ScheduledReportEntityDao;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
+import com.soffid.iam.model.UserEntity;
+import com.soffid.iam.model.identity.IdentityGenerator;
 
 import es.caib.seycon.ng.comu.Configuracio;
 import es.caib.seycon.ng.comu.Usuari;
 import es.caib.seycon.ng.exception.InternalErrorException;
-import es.caib.seycon.ng.model.identity.IdentityGenerator;
 import es.caib.seycon.ng.servei.ConfiguracioService;
 import es.caib.seycon.ng.utils.Security;
 
@@ -238,7 +239,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		ReportEntity report = getReportEntityDao().load (schedule.getReportId());
 		if (canExecute (report))
 		{
-			es.caib.seycon.ng.model.UsuariEntity myself = getUsuariEntityDao ().findByCodi(Security.getCurrentUser());
+			UserEntity myself = getUserEntityDao ().findByUserName(Security.getCurrentUser());
 					
 			ExecutedReportEntity er = getExecutedReportEntityDao().newExecutedReportEntity();
 			er.setReport(report);

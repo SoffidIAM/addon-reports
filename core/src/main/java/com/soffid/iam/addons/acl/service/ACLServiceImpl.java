@@ -4,12 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.soffid.iam.addons.acl.api.AccessControlList;
+import com.soffid.iam.model.GroupEntity;
+import com.soffid.iam.model.UserEntity;
+import com.soffid.iam.model.UserGroupEntity;
 
 import es.caib.seycon.ng.comu.RolGrant;
-import es.caib.seycon.ng.model.GrupEntity;
-import es.caib.seycon.ng.model.RolEntity;
-import es.caib.seycon.ng.model.UsuariEntity;
-import es.caib.seycon.ng.model.UsuariGrupEntity;
 
 public class ACLServiceImpl extends ACLServiceBase {
 
@@ -26,13 +25,13 @@ public class ACLServiceImpl extends ACLServiceBase {
 			acl.getRoles().add(rg.getIdRol());
 		}
 		
-		es.caib.seycon.ng.model.UsuariEntity ue = getUsuariEntityDao().load(userId);
+		UserEntity ue = getUserEntityDao().load(userId);
 		if (ue != null)
 		{
-			recursivelyAddGroup (acl, ue.getGrupPrimari());
-			for (es.caib.seycon.ng.model.UsuariGrupEntity uge: ue.getGrupsSecundaris())
+			recursivelyAddGroup (acl, ue.getPrimaryGroup());
+			for (UserGroupEntity uge: ue.getSecondaryGroups())
 			{
-				recursivelyAddGroup (acl, uge.getGrup());
+				recursivelyAddGroup (acl, uge.getGroup());
 			}
 		}
 		
@@ -40,12 +39,12 @@ public class ACLServiceImpl extends ACLServiceBase {
 	}
 
 	private void recursivelyAddGroup(AccessControlList acl,
-			es.caib.seycon.ng.model.GrupEntity grupPrimary) {
-		es.caib.seycon.ng.model.GrupEntity g = grupPrimary;
+			GroupEntity grupPrimary) {
+		GroupEntity g = grupPrimary;
 		while ( g != null && ! acl.getGroups().contains(g.getId()))
 		{
 			acl.getGroups().add(g.getId());
-			g = g.getPare();
+			g = g.getParent();
 		}
 	}
 
@@ -93,7 +92,7 @@ public class ACLServiceImpl extends ACLServiceBase {
 		acl2.getUsers().addAll(acl2.getUsers());
 		for (Long groupId: acl.getGroups())
 		{
-			GrupEntity ge = getGrupEntityDao().load(groupId);
+			GroupEntity ge = getGroupEntityDao().load(groupId);
 			addGroupMembers (ge, acl2.getUsers());
 		}
 
@@ -103,7 +102,7 @@ public class ACLServiceImpl extends ACLServiceBase {
 			{
 				if (grant.getUser() != null)
 				{
-					UsuariEntity ue = getUsuariEntityDao().findByCodi(grant.getUser());
+					UserEntity ue = getUserEntityDao().findByUserName(grant.getUser());
 					if (ue != null)
 						acl2.getUsers().add(ue.getId());
 				}
@@ -114,14 +113,14 @@ public class ACLServiceImpl extends ACLServiceBase {
 		
 	}
 
-	private void addGroupMembers(GrupEntity ge, Set<Long> users) {
-		for ( UsuariEntity ue: ge.getUsuarisGrupPrimari())
+	private void addGroupMembers(GroupEntity ge, Set<Long> users) {
+		for ( UserEntity ue: ge.getPrimaryGroupUsers())
 			users.add(ue.getId());
 
-		for ( UsuariGrupEntity ue: ge.getUsuarisGrupSecundari())
-			users.add(ue.getUsuari().getId());
+		for ( UserGroupEntity ue: ge.getSecondaryGroupUsers())
+			users.add(ue.getUser().getId());
 		
-		for (GrupEntity child: ge.getFills())
+		for (GroupEntity child: ge.getChildrens())
 			addGroupMembers(child, users);
 }
 

@@ -76,7 +76,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		{
 			ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
 			
-			erte.setUser(getUsuariEntityDao().load(user));
+			erte.setUser(getUserEntityDao().load(user));
 			erte.setReport(ere);
 			ere.getAcl().add(erte);
 		}
