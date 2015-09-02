@@ -2,13 +2,10 @@ package com.soffid.iam.addons.report.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.Collection;
@@ -19,20 +16,16 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import javax.ejb.CreateException;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.type.CustomType;
 import org.hibernate.type.Type;
-import org.jfree.util.Log;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -58,18 +51,18 @@ import com.soffid.iam.addons.report.model.ReportACLEntity;
 import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ReportEntityDao;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
-import com.soffid.iam.addons.report.model.ScheduledReportEntityDao;
+import com.soffid.iam.api.User;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
 import com.soffid.iam.model.UserEntity;
 import com.soffid.iam.model.identity.IdentityGenerator;
+import com.soffid.iam.utils.Security;
 
 import es.caib.seycon.ng.comu.Configuracio;
 import es.caib.seycon.ng.comu.Usuari;
 import es.caib.seycon.ng.exception.InternalErrorException;
 import es.caib.seycon.ng.servei.ConfiguracioService;
-import es.caib.seycon.ng.utils.Security;
 
 
 public class ReportServiceImpl extends ReportServiceBase implements ApplicationContextAware, InitializingBean {
@@ -271,7 +264,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	private boolean canExecute(ReportEntity report) throws InternalErrorException {
 		if (Security.isUserInRole("report:admin"))
 			return true;
-		Usuari user = getUsuariService().getCurrentUsuari();
+		User user = getUserService().getCurrentUser();
 		AccessControlList acl = new AccessControlList();
 		
 		for (ReportACLEntity ace: report.getAcl())
@@ -288,7 +281,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	}
 
 	private boolean canView(ExecutedReportEntity report) throws InternalErrorException {
-		Usuari user = getUsuariService().getCurrentUsuari();
+		User user = getUserService().getCurrentUser();
 		AccessControlList acl = new AccessControlList();
 		
 		for (ExecutedReportTargetEntity erte: report.getAcl())
@@ -493,6 +486,14 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		}
 		
 		dumpClass(IdentityGenerator.class, jar, storedObjects);
+		try {
+			dumpClass(getClass().getClassLoader().loadClass("com.soffid.iam.model.security.SecurityScopeEntity"), 
+					jar, storedObjects);
+		} catch ( NoClassDefFoundError e ) {
+			
+		} catch ( ClassNotFoundException e) {
+			
+		}
 		
 		hibernateFile.write("</session-factory>\n</hibernate-configuration>\n".getBytes());
 		hibernateFile.close();
@@ -528,7 +529,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		ExecutedReportEntity ere = getExecutedReportEntityDao().load(report.getId());
 		if (ere != null)
 		{
-			Usuari u = getUsuariService().getCurrentUsuari();
+			User u = getUserService().getCurrentUser();
 			if (u != null)
 			{
 				for ( Iterator<ExecutedReportTargetEntity> it = ere.getAcl().iterator();

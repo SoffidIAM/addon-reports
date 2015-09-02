@@ -8,6 +8,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import com.soffid.iam.api.Configuration;
+import com.soffid.iam.service.ConfigurationService;
+
 import es.caib.seycon.ng.comu.Configuracio;
 import es.caib.seycon.ng.servei.ConfiguracioService;
 
@@ -25,18 +28,18 @@ public class ReportSchedulerBootServiceImpl extends
 		
 		org.apache.commons.logging.Log log = LogFactory.getLog(getClass());
 		
-		ConfiguracioService cfgSvc = getConfiguracioService();
-		Configuracio cfg = cfgSvc.findParametreByCodiAndCodiXarxa("addon.report.server", null);
+		ConfigurationService cfgSvc = getConfigurationService();
+		Configuration cfg = cfgSvc.findParameterByNameAndNetworkName("addon.report.server", null);
 		String hostName = InetAddress.getLocalHost().getHostName();
 		if (cfg == null)
 		{
-			cfg = new Configuracio ();
-			cfg.setCodi("addon.report.server");
-			cfg.setValor(hostName);
-			cfg.setDescripcio("Console to execute reports");
+			cfg = new Configuration ();
+			cfg.setCode("addon.report.server");
+			cfg.setValue(hostName);
+			cfg.setDescription("Console to execute reports");
 			cfgSvc.create(cfg);
-		} else if (! cfg.getValor().equals(hostName)) {
-			log.info("This host is not the report server ("+cfg.getValor()+")");
+		} else if (! cfg.getValue().equals(hostName)) {
+			log.info("This host is not the report server ("+cfg.getValue()+")");
 			return;
 		}
 		

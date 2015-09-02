@@ -32,7 +32,7 @@ public class Messages implements Map<String, String> {
     public String get(Object key) {
         try
         {
-            return es.caib.seycon.ng.comu.lang.MessageFactory.getString(BUNDLE_NAME, key.toString());
+            return com.soffid.iam.lang.MessageFactory.getString(BUNDLE_NAME, key.toString());
         }
         catch (MissingResourceException e)
         {

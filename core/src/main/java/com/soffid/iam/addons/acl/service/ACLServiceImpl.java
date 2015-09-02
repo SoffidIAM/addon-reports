@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.soffid.iam.addons.acl.api.AccessControlList;
+import com.soffid.iam.api.RoleGrant;
 import com.soffid.iam.model.GroupEntity;
 import com.soffid.iam.model.UserEntity;
 import com.soffid.iam.model.UserGroupEntity;
@@ -20,9 +21,9 @@ public class ACLServiceImpl extends ACLServiceBase {
 		acl.setRoles( new HashSet<Long>());
 		
 		acl.getUsers().add (userId);
-		for (es.caib.seycon.ng.comu.RolGrant rg: getAplicacioService().findEffectiveRolGrantByUser(userId) )
+		for (RoleGrant rg: getApplicationService().findEffectiveRoleGrantByUser(userId) )
 		{
-			acl.getRoles().add(rg.getIdRol());
+			acl.getRoles().add(rg.getRoleId());
 		}
 		
 		UserEntity ue = getUserEntityDao().load(userId);
@@ -73,9 +74,9 @@ public class ACLServiceImpl extends ACLServiceBase {
 	@Override
 	protected boolean handleIsAccountIncluded(long accountId, AccessControlList acl)
 			throws Exception {
-		for (es.caib.seycon.ng.comu.RolGrant rg: getAplicacioService().findEffectiveRolGrantByAccount(accountId) )
+		for (RoleGrant rg: getApplicationService().findEffectiveRoleGrantByAccount(accountId) )
 		{
-			if (acl.getRoles().contains(rg.getIdRol()))
+			if (acl.getRoles().contains(rg.getRoleId()))
 				return true;
 		}
 		return false;
@@ -98,7 +99,7 @@ public class ACLServiceImpl extends ACLServiceBase {
 
 		for (Long roleId: acl.getRoles())
 		{
-			for (RolGrant grant: getAplicacioService().findEffectiveRolGrantsByRolId(roleId))
+			for (RoleGrant grant: getApplicationService().findEffectiveRoleGrantsByRoleId(roleId))
 			{
 				if (grant.getUser() != null)
 				{
