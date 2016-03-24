@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Permissions Metrics" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="b4e7f864-6628-4662-b8b6-c15b45b0a4db">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="SINCE" class="java.util.Date"/>
+	<parameter name="UNTIL" class="java.util.Date"/>
+	<queryString language="hql">
+		<![CDATA[select CONCAT(YEAR(user.dataCreacio),'-',MONTH(user.dataCreacio)) as d, COUNT(*) AS c
+from es.caib.seycon.ng.model.UsuariEntity as user
+WHERE (user.dataCreacio >= $P{SINCE} or $P{SINCE} is null) and
+      (user.dataCreacio <= $P{UNTIL} or $P{UNTIL} is null)
+GROUP BY  CONCAT(YEAR(user.dataCreacio),'-',MONTH(user.dataCreacio))
+ORDER BY 1]]>
+	</queryString>
+	<field name="d" class="java.lang.String"/>
+	<field name="c" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="30" splitType="Stretch">
+			<frame>
+				<reportElement key="frame" mode="Opaque" x="-20" y="-20" width="595" height="50" backcolor="#006699" uuid="83ee8639-c9f4-4e6d-b6d2-f83e2684e750"/>
+				<staticText>
+					<reportElement key="staticText" x="20" y="20" width="186" height="23" forecolor="#FFFFFF" uuid="9708c6a2-1c28-4d27-ab67-29f2073a433c"/>
+					<textElement>
+						<font size="12" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Permissions metrics]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText" x="335" y="23" width="240" height="20" forecolor="#FFFFFF" uuid="087c849b-57bf-4a2c-aa2e-cce54198080c"/>
+					<textElement textAlignment="Right">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Number of users by applications]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="167" splitType="Stretch">
+			<lineChart>
+				<chart evaluationTime="Report">
+					<reportElement x="162" y="46" width="200" height="100" uuid="e831b34a-370c-4cd4-88c7-dc4d2a949088"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["New users"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{d}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{c}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat/>
+					</valueAxisFormat>
+				</linePlot>
+			</lineChart>
+		</band>
+	</pageHeader>
+</jasperReport>

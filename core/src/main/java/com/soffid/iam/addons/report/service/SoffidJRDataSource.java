@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -38,7 +39,10 @@ public class SoffidJRDataSource implements JRDataSource {
 	public Object getFieldValue(JRField jrField) throws JRException 
 	{
 		try {
-			return PropertyUtils.getNestedProperty(current, jrField.getName());
+			if (current instanceof Map)
+				return ((Map)current).get(jrField.getName());
+			else
+				return PropertyUtils.getNestedProperty(current, jrField.getName());
 		} catch (Throwable t) {
 			throw new JRException("Error evaluating field "+jrField.getName(), t);
 		}
