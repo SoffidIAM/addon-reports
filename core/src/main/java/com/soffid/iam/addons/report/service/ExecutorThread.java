@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.nio.file.Files;
+import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Collection;
@@ -219,7 +220,9 @@ public class ExecutorThread extends Thread {
 	        // preparamos para imprimir
 			JasperPrint jasperPrint;
 
-			jasperPrint = JasperFillManager.fillReport(jasperReport, v);
+			Connection conn = session.connection();
+			
+			jasperPrint = JasperFillManager.fillReport(jasperReport, v, conn);
 	
 	        if (jasperPrint.getPages().size() > 0) {
 	        	File outFile = File.createTempFile("report", "pdf");
