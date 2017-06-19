@@ -174,7 +174,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         			if (existingParameter.getName().equals(jp.getName()))
         			{
         				found = true;
-        				existingParameter.setDescription(jp.getDescription());
+    		        	if (jp.getDescription() != null)
+    		        		existingParameter.setDescription(jp.getDescription());
         				rp.add(existingParameter);
         				ParameterType desired = guessParameterType(jp);
         				ParameterType existing = existingParameter.getType();
@@ -541,20 +542,20 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 						it.remove();
 					}
 				}
-				if (ere.getAcl().isEmpty())
-				{
-					DocumentService ds = getDocumentService();
-					if (ere.getHtmlDocument() != null)
-						ds.deleteDocument(new DocumentReference(ere.getHtmlDocument()));
-					if (ere.getXmlDocument() != null)
-						ds.deleteDocument(new DocumentReference(ere.getXmlDocument()));
-					if (ere.getPdfDocument() != null)
-						ds.deleteDocument(new DocumentReference(ere.getPdfDocument()));
-					getExecutedReportEntityDao().remove(ere);
-					
-				} else {
-					getExecutedReportEntityDao().update(ere);
-				}
+			}
+			if (ere.getAcl().isEmpty())
+			{
+				DocumentService ds = getDocumentService();
+				if (ere.getHtmlDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getHtmlDocument()));
+				if (ere.getXmlDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getXmlDocument()));
+				if (ere.getPdfDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getPdfDocument()));
+				getExecutedReportEntityDao().remove(ere);
+				
+			} else {
+				getExecutedReportEntityDao().update(ere);
 			}
 		}
 	}
