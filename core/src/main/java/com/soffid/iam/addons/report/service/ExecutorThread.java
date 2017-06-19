@@ -185,8 +185,8 @@ public class ExecutorThread extends Thread {
 			{
 				if (pv.getName().equals (jp.getName()))
 				{
-					if (pv.getValue() == null)
-						v.put(pv.getName(), pv.getValue());
+					if (pv.getValue() == null || "".equals(pv.getValue()))
+						v.put(pv.getName(), null);
 					else if (jp.getValueClass().isAssignableFrom(pv.getValue().getClass()))
 						v.put(pv.getName(), pv.getValue());
 					else if (jp.getValueClass().isAssignableFrom(Integer.class))
