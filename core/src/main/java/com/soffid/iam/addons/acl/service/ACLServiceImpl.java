@@ -90,7 +90,7 @@ public class ACLServiceImpl extends ACLServiceBase {
 		acl2.setUsers( new HashSet<Long>());
 		acl2.setRoles( new HashSet<Long>());
 		
-		acl2.getUsers().addAll(acl2.getUsers());
+		acl2.getUsers().addAll(acl.getUsers());
 		for (Long groupId: acl.getGroups())
 		{
 			GrupEntity ge = getGrupEntityDao().load(groupId);
