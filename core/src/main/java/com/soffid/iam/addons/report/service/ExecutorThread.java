@@ -174,7 +174,8 @@ public class ExecutorThread extends Thread {
 				
 		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (f);
 		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
-		
+		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+
 		List<File> children = new LinkedList<File>();
 		downloadChildren(srcdir, children, jasperReport);
 		
@@ -217,13 +218,15 @@ public class ExecutorThread extends Thread {
 		try
 		{ 
 			v.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+			v.put("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+			v.put("net.sf.jasperreports.awt.ignore.missing.font", "true");
 	        // preparamos para imprimir
 			JasperPrint jasperPrint;
 
 			Connection conn = session.connection();
 			
 			jasperPrint = JasperFillManager.fillReport(jasperReport, v, conn);
-	
+			
 	        if (jasperPrint.getPages().size() > 0) {
 	        	File outFile = File.createTempFile("report", "pdf");
 	        	
@@ -297,11 +300,13 @@ public class ExecutorThread extends Thread {
 					int i = expression.lastIndexOf('\"');
 					if ( i >= 0) expression = expression.substring(0, i);
 					i = expression.lastIndexOf('\"');
-					if ( i >= 0) expression.substring(i+1);
+					if ( i >= 0) expression = expression.substring(i+1);
 					i = expression.lastIndexOf('\\');
-					if ( i >= 0) expression.substring(i+1);
+					if ( i >= 0) expression = expression.substring(i+1);
 					i = expression.lastIndexOf('/');
-					if ( i >= 0) expression.substring(i+1);
+					if ( i >= 0) expression = expression.substring(i+1);
+					i = expression.lastIndexOf('.');
+					if ( i >= 0) expression = expression.substring(0, i);
 					File f = new File (srcdir, expression+".jasper");
 					if (! files.contains(f))
 					{
