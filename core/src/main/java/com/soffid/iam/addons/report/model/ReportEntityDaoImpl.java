@@ -85,7 +85,7 @@ public class ReportEntityDaoImpl extends ReportEntityDaoBase
 			for (Iterator<ReportParameter> it2 = newParams.iterator(); it2.hasNext();)
 			{
 				ReportParameter rp = it2.next();
-				if (rp.getId().equals (rpe.getId()))
+				if (rp.getId() != null &&  rp.getId().equals (rpe.getId()))
 				{
 					getReportParameterEntityDao().reportParameterToEntity(rp, rpe, true);
 					it2.remove();
