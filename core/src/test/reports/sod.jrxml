@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Risk report" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="502ab800-1aca-425a-859c-c8d7e533f288">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<subDataset name="dataset1" uuid="dc9dbc1a-2b09-4035-a1be-04f44120b86a">
+		<queryString language="SQL">
+			<![CDATA[]]>
+		</queryString>
+	</subDataset>
+	<parameter name="app" class="java.lang.String">
+		<parameterDescription><![CDATA[Application name pattern]]></parameterDescription>
+		<defaultValueExpression><![CDATA["%"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="all" class="java.lang.Boolean">
+		<parameterDescription><![CDATA[All risks]]></parameterDescription>
+	</parameter>
+	<parameter name="highRisk" class="java.lang.Boolean">
+		<parameterDescription><![CDATA[High risk grants]]></parameterDescription>
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="lowRisk" class="java.lang.Boolean">
+		<parameterDescription><![CDATA[Low risks]]></parameterDescription>
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="forbiddenRisk" class="java.lang.Boolean">
+		<parameterDescription><![CDATA[Forbidden risks]]></parameterDescription>
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<queryString language="bsh">
+		<![CDATA[import es.caib.seycon.ng.utils.Security;
+import es.caib.seycon.ng.ServiceLocator;
+import es.caib.secyon.comu.*;
+import java.util.Collection;
+
+result = new java.util.LinkedList();
+
+appService = ServiceLocator.instance().getAplicacioService ();
+sodService = ServiceLocator.instance().getSoDRuleService ();
+usuariService = ServiceLocator.instance().getUsuariService ();
+accountService = ServiceLocator.instance().getAccountService ();
+
+Collection intersect(Collection intersection,
+		Collection grants) {
+	if (intersection == null)
+		return grants;
+
+	for (Iterator it = intersection.iterator(); it.hasNext();)
+	{
+		RolGrant existing = it.next ();
+		boolean found = false;
+		for (RolGrant newGrant: grants)
+		{
+			if (existing.getUser() != null && existing.getUser().equals(newGrant.getUser()))
+			{
+				found = true;
+				break;
+			}
+			else if (existing.getOwnerAccountName() != null &&
+					existing.getOwnerAccountName().equals(newGrant.getOwnerAccountName()) &&
+					existing.getOwnerDispatcher() != null &&
+					existing.getOwnerDispatcher().equals (newGrant.getOwnerDispatcher()))
+			{
+				found = true;
+				break;
+			}
+		}
+		if (! found)
+			it.remove ();
+	}
+	return intersection;
+}
+
+void generateForRisk ( String app, String type, SoDRisk sodLevel, List result)
+{
+	Collection apps;
+	if (app != null && app.length() > 0)
+		apps = appService.findAplicacioByCriteri(app, null, null, null, null, null, null, null);
+	else
+		apps = appService.findAplicacioByCriteri("%", null, null, null, null, null, null, null);
+
+	for (Aplicacio app: apps)
+	{
+		for (SoDRule rule: sodService.findRuleByApplication(app.getId()))
+		{
+			if (rule.getRisk().equals ( sodLevel))
+			{
+				int numRoles = 0;
+
+				Collection intersection = null;
+				String roleBuffer = "";
+				for (SoDRole sodRole: sodService.findRolesByRule(rule.getId()))
+				{
+					if (numRoles > 0) roleBuffer = roleBuffer + ", ";
+ 					roleBuffer = roleBuffer +  sodRole.getRole().getNom()+ "@" + sodRole.getRole().getBaseDeDades()	;
+					Collection grants = appService.findEffectiveRolGrantsByRolId(sodRole.getRole().getId());
+						intersection = intersect (intersection, grants);
+				}
+				if (intersection != null)
+				{
+					for (RolGrant grant: intersection)
+					{
+						row = new java.util.HashMap ();
+						row.put("rule", rule);
+						row.put ("risk", type);
+						row.put ("app", app);
+						if (grant.getUser() != null)
+						{
+							Usuari usuari;
+							try {
+								usuari = usuariService.findUsuariByCodiUsuari(grant.getUser());
+								if (usuari != null)
+								{
+									row.put ("userName", usuari.getCodi());
+									row.put ("fullName", usuari.getFullName());
+									result.add(row);
+								}
+							} catch (Exception e) {
+							}
+						}
+						else
+						{
+							try {
+								Account account = accountService.findAccount(grant.getOwnerAccountName(), grant.getOwnerDispatcher());
+								if (account != null)
+								{
+									row.put ("userName", account.getName());
+									row.put ("fullName", account.getDescription());
+									result.add(row);
+								}
+							} catch (Exception e) {
+							}
+						}
+					}
+				}
+			}
+
+		}
+	}
+}
+
+Security.nestedLogin("SoDReport", new String[] {
+		Security.AUTO_APPLICATION_QUERY+Security.AUTO_ALL,
+		Security.AUTO_USER_QUERY+Security.AUTO_ALL,
+		Security.AUTO_ACCOUNT_QUERY+Security.AUTO_ALL,
+		Security.AUTO_USER_ROLE_QUERY+Security.AUTO_ALL,
+		Security.AUTO_GROUP_ROLE_QUERY+Security.AUTO_ALL,
+		Security.AUTO_GROUP_QUERY+Security.AUTO_ALL
+});
+try
+{
+	if (all || (forbiddenRisk != null && forbiddenRisk.booleanValue()))
+		generateForRisk (app, "Forbidden", SoDRisk.SOD_FORBIDDEN, result);
+	if (all || (highRisk != null && highRisk.booleanValue()))
+		generateForRisk (app, "High", SoDRisk.SOD_HIGH, result);
+	if (all || (lowRisk != null && lowRisk.booleanValue()))
+		generateForRisk (app, "Low", SoDRisk.SOD_LOW, result);
+	if (all)
+		generateForRisk (app, "N/A", SoDRisk.SOD_NA, result);
+}
+finally
+{
+	Security.nestedLogoff();
+}
+
+return result;]]>
+	</queryString>
+	<field name="risk" class="java.lang.String"/>
+	<field name="userName" class="java.lang.String"/>
+	<field name="fullName" class="java.lang.String"/>
+	<field name="rule" class="es.caib.seycon.ng.comu.SoDRule"/>
+	<field name="app" class="es.caib.seycon.ng.comu.Aplicacio"/>
+	<group name="Rule">
+		<groupExpression><![CDATA[$F{rule}]]></groupExpression>
+		<groupHeader>
+			<band height="41">
+				<textField>
+					<reportElement x="1" y="0" width="99" height="15" uuid="6c68dcd5-18b6-46db-ad37-cba9b0565716"/>
+					<textFieldExpression><![CDATA[$F{risk}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="101" y="0" width="100" height="15" uuid="a54538cb-a1c7-44b6-91d8-cdd06cdf13e6"/>
+					<textFieldExpression><![CDATA[$F{app}.getCodi()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="210" y="0" width="325" height="15" uuid="609161e4-c1d5-47de-bf98-94c1e658287f"/>
+					<textFieldExpression><![CDATA[$F{rule}.getName()]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="101" y="23" width="100" height="18" uuid="590078be-451f-4f17-a2b1-624714902bff"/>
+					<text><![CDATA[User]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="210" y="23" width="100" height="18" uuid="be01af3a-45db-47b0-901a-e94e404fce39"/>
+					<text><![CDATA[Full Name]]></text>
+				</staticText>
+				<line>
+					<reportElement x="101" y="37" width="434" height="1" uuid="d2bafabe-3287-4aeb-8267-6f516685ae0a"/>
+				</line>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="12"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="60" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-1" x="68" y="0" width="412" height="38" forecolor="#000000" uuid="85215064-76a9-4e9b-b248-5ee106a7b039"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="30"/>
+				</textElement>
+				<text><![CDATA[Soffid Risk report]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="38" width="100" height="20" uuid="872c7375-a85d-4ae7-9f25-effd4d529492"/>
+				<text><![CDATA[Application filter:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="108" y="38" width="100" height="20" uuid="aa92ab48-c6ec-4c95-a508-8c0f68882f9e"/>
+				<textFieldExpression><![CDATA[$P{app}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="18" splitType="Stretch">
+			<line direction="BottomUp">
+				<reportElement key="line" mode="Opaque" x="0" y="16" width="535" height="1" forecolor="#000000" backcolor="#FFFFFF" uuid="888bb3f1-8230-4b58-91ac-d3c9f1cf571a"/>
+				<graphicElement>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="1" y="0" width="100" height="16" uuid="11373197-732e-441a-9278-2c6c77bc96da"/>
+				<text><![CDATA[Risk]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="101" y="1" width="100" height="16" uuid="3d3bbd81-f934-4558-a8da-2a8fa11ff776"/>
+				<text><![CDATA[Application]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="210" y="1" width="100" height="15" uuid="6ae6fd7e-6ff9-4b33-a941-ddf3bb823fd7"/>
+				<text><![CDATA[Rule]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="19" splitType="Stretch">
+			<textField>
+				<reportElement x="101" y="1" width="100" height="18" uuid="b84f5a09-42ec-4d7f-8ff4-f5cc56e71a12"/>
+				<textFieldExpression><![CDATA[$F{userName}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="210" y="1" width="325" height="18" uuid="24210ee8-7651-4bb1-9bd6-9fe80978bef1"/>
+				<textFieldExpression><![CDATA[$F{fullName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="27" splitType="Stretch">
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="325" y="4" width="170" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="25963ead-970a-4add-ad1e-95f2ba292caf"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font fontName="Helvetica" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER} + " of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="499" y="4" width="36" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="02804100-741d-41c0-8eee-e241f8dd7518"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Helvetica" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["" + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement key="line" mode="Opaque" x="0" y="3" width="535" height="1" forecolor="#000000" backcolor="#FFFFFF" uuid="58f079f4-2bdd-4872-bb9b-dd13d580d222"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="1" y="6" width="209" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="de0c2bc8-6a60-4241-9a04-eff96b88fe82"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="Helvetica" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

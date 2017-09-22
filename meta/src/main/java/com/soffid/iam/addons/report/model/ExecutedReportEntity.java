@@ -62,6 +62,6 @@ public class ExecutedReportEntity {
 	@DaoFinder
 	Collection<ExecutedReportEntity> findByCriteria (ExecutedReportCriteria criteria) { return null; }
 	
-	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r where r.done=false")
-	Collection<ExecutedReportEntity> findPendingReports () { return null; }
+	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r where r.done=:done")
+	Collection<ExecutedReportEntity> findPendingReports (boolean done) { return null; }
 }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.nio.file.Files;
+import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Collection;
@@ -140,7 +141,10 @@ public class ExecutorThread extends Thread {
 							log.info("Errr executing report "+sr.getName(), e);
 							sr.setDone(true);
 							sr.setError(true);
-							sr.setErrorMessage(e.toString());
+							String msg = e.toString();
+							if (msg.length() > 1000)
+								msg = msg.substring(0, 1000);
+							sr.setErrorMessage(msg);
 							reportSchedulerService.updateReport(sr);
 						}
 					}
@@ -169,11 +173,13 @@ public class ExecutorThread extends Thread {
 		srcdir.mkdir();
 		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
 
-		File f = getDocument(srcdir, r);
+		File f = new File(srcdir, sr.getName()+".jasper");
+		getDocument(f, r);
 				
 		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (f);
 		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
-		
+		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+
 		List<File> children = new LinkedList<File>();
 		downloadChildren(srcdir, children, jasperReport);
 		
@@ -184,8 +190,8 @@ public class ExecutorThread extends Thread {
 			{
 				if (pv.getName().equals (jp.getName()))
 				{
-					if (pv.getValue() == null)
-						v.put(pv.getName(), pv.getValue());
+					if (pv.getValue() == null || "".equals(pv.getValue()))
+						v.put(pv.getName(), null);
 					else if (jp.getValueClass().isAssignableFrom(pv.getValue().getClass()))
 						v.put(pv.getName(), pv.getValue());
 					else if (jp.getValueClass().isAssignableFrom(Integer.class))
@@ -216,11 +222,16 @@ public class ExecutorThread extends Thread {
 		try
 		{ 
 			v.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+			v.put("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+			v.put("net.sf.jasperreports.awt.ignore.missing.font", "true");
+			v.put("SUBREPORT_DIR", srcdir.getPath()+"/");
 	        // preparamos para imprimir
 			JasperPrint jasperPrint;
 
-			jasperPrint = JasperFillManager.fillReport(jasperReport, v);
-	
+			Connection conn = session.connection();
+			
+			jasperPrint = JasperFillManager.fillReport(jasperReport, v, conn);
+			
 	        if (jasperPrint.getPages().size() > 0) {
 	        	File outFile = File.createTempFile("report", "pdf");
 	        	
@@ -238,7 +249,7 @@ public class ExecutorThread extends Thread {
 	        	sr.setXmlDocument(documentService.getReference().toString());
 	        	documentService.closeDocument();
 
-	        	documentService.createDocument("applicatin/zip", sr.getName()+".zip", "report");
+	        	documentService.createDocument("application/zip", sr.getName()+".zip", "report");
 	        	File htmlFile = File.createTempFile("soffid"+sr.getId(), ".html");
 	        	JasperExportManager.exportReportToHtmlFile(jasperPrint, htmlFile.getPath());
 	        	out = new DocumentOutputStream(documentService);
@@ -294,21 +305,25 @@ public class ExecutorThread extends Thread {
 					int i = expression.lastIndexOf('\"');
 					if ( i >= 0) expression = expression.substring(0, i);
 					i = expression.lastIndexOf('\"');
-					if ( i >= 0) expression.substring(i+1);
+					if ( i >= 0) expression = expression.substring(i+1);
 					i = expression.lastIndexOf('\\');
-					if ( i >= 0) expression.substring(i+1);
+					if ( i >= 0) expression = expression.substring(i+1);
 					i = expression.lastIndexOf('/');
-					if ( i >= 0) expression.substring(i+1);
+					if ( i >= 0) expression = expression.substring(i+1);
+					i = expression.lastIndexOf('.');
+					if ( i >= 0) expression = expression.substring(0, i);
 					File f = new File (srcdir, expression+".jasper");
 					if (! files.contains(f))
 					{
+						log.info("Generating "+f.getPath());
 						Collection<Report> reports = reportService.findReports(expression, true);
 						if (reports == null || reports.isEmpty())
 							throw new InternalErrorException ("Cannot find subreport "+expression);
 						for (Report report: reports)
 						{
 							DocumentReference ref = reportSchedulerService.getReportDocument(report.getId());
-							files.add (getDocument(srcdir, ref));
+							getDocument(f, ref);
+							files.add (f);
 						}
 					}
 				}
@@ -327,9 +342,8 @@ public class ExecutorThread extends Thread {
 		jar.closeEntry();
 	}
 
-	private File getDocument(File dir, DocumentReference ref) throws DocumentBeanException, InternalErrorException, IOException {
+	private void getDocument(File f, DocumentReference ref) throws DocumentBeanException, InternalErrorException, IOException {
 		documentService.openDocument(ref);
-		File f =  new File(dir, documentService.getExternalName()+".jasper");
 		FileOutputStream out = new FileOutputStream(f);
 		documentService.openDownloadTransfer();
 		do
@@ -343,7 +357,6 @@ public class ExecutorThread extends Thread {
 		out.close ();
 		documentService.endDownloadTransfer();
 		documentService.closeDocument();
-		return f;
 	}
 
 

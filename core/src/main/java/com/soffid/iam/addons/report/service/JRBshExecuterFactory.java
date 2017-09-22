@@ -34,7 +34,8 @@ public class JRBshExecuterFactory implements JRQueryExecuterFactory {
 			} catch (Throwable t) {
 			}
 			for (String p : parameters.keySet()) {
-				interp.set(p, parameters.get(p));
+				JRValueParameter v = parameters.get(p);
+				interp.set(p, v.getValue());
 			}
 			Object result = interp.eval(dataset.getQuery().getText());
 			@SuppressWarnings("unchecked")

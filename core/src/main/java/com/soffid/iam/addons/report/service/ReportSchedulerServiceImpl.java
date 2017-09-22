@@ -31,7 +31,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 	@Override
 	protected List<ExecutedReport> handleGetPendingReports() throws Exception {
 		ExecutedReportEntityDao dao = getExecutedReportEntityDao();
-		return dao.toExecutedReportList(dao.findPendingReports());
+		return dao.toExecutedReportList(dao.findPendingReports(false));
 	}
 
 	@Override
