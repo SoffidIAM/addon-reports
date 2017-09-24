@@ -27,14 +27,14 @@
 		</finder>
 
 		<finder name="executedReport" type="executedReport">
-			<ejb-finder jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService" 
+			<ejb-finder jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService" 
 			method="findExecutedReports" if="${queryEnabled}"> 
 				<parameter value="${self.query[0].instance}" />
 			</ejb-finder>
 		</finder>
 
 		<finder name="report" type="report">
-			<ejb-finder jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService" 
+			<ejb-finder jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService" 
 			method="findReports" if="${queryEnabled}">
 				<parameter value="${report}" />
 				<parameter value="${false}" />
@@ -42,7 +42,7 @@
 		</finder>
 
 		<finder name="scheduledReport" type="scheduledReport">
-			<ejb-finder jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService" 
+			<ejb-finder jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService" 
 			method="findScheduledReports" if="${queryEnabled}">
 				<parameter value="${report}" />
 			</ejb-finder>
@@ -59,7 +59,7 @@
 	
 
 	<datanode name="executedReport" >
-		<ejb-handler jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService">
+		<ejb-handler jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService">
 			<delete-method method="remove">    
 				<parameter value="${instance}" />
 			</delete-method>
@@ -67,7 +67,7 @@
 	</datanode>
 
 	<datanode name="report" >
-		<ejb-handler jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService">
+		<ejb-handler jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService">
 			<delete-method method="remove">    
 				<parameter value="${instance}" />
 			</delete-method>
@@ -83,7 +83,7 @@
 	
 	
 	<datanode name="scheduledReport" >
-		<ejb-handler jndi="soffid/ejb/com.soffid.iam.addons.report.service.ReportService">
+		<ejb-handler jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService">
 			<delete-method method="remove">    
 				<parameter value="${instance}" />
 			</delete-method>
@@ -111,16 +111,14 @@
 		<custom-attribute name="objectType"><![CDATA[
 			String name = instance;
 			try {
-			   usuari = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.UsuariService")
-			   	. create()
-			   	.findUsuariByCodiUsuari(name);
+			   usuari = com.soffid.iam.EJBLocator.getUserService()
+			   	.findUserByUserName(name);
 			   if (usuari != null)
 			   	  return "user";
 			} catch (Exception e) {}
 			try {
-			   grup = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.GrupService")
-			   	. create()
-			   	.findGrupByCodiGrup(name);
+			   grup = com.soffid.iam.EJBLocator.getGroupService()
+			   	.findGroupByGroupName(name);
 			   if (grup != null)
 			   	  return "group";
 			} catch (Exception e) {}
@@ -144,16 +142,14 @@
 		<custom-attribute name="objectType"><![CDATA[
 			String name = instance;
 			try {
-			   usuari = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.UsuariService")
-			   	. create()
-			   	.findUsuariByCodiUsuari(name);
+			   usuari = com.soffid.iam.EJBLocator.getUserService()
+			   	.findUserByUserName(name);
 			   if (usuari != null)
 			   	  return "user";
 			} catch (Exception e) {}
 			try {
-			   grup = new javax.naming.InitialContext().lookup ( "soffid/ejb/es.caib.seycon.ng.servei.GrupService")
-			   	. create()
-			   	.findGrupByCodiGrup(name);
+			   grup = com.soffid.iam.EJBLocator.getGroupService()
+			   	.findGroupByGroupName(name);
 			   if (grup != null)
 			   	  return "group";
 			} catch (Exception e) {}

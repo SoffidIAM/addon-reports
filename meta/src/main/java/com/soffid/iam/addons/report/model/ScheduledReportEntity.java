@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Date;
 
 import com.soffid.iam.addons.report.api.ScheduledReport;
+import com.soffid.iam.model.TenantEntity;
 import com.soffid.mda.annotation.Column;
 import com.soffid.mda.annotation.DaoFinder;
 import com.soffid.mda.annotation.Depends;
@@ -40,8 +41,12 @@ public class ScheduledReportEntity {
 	@Column(name="SRE_CREATION")
 	Date creationDate;
 
+	@Column(name="SRE_TEN_ID")
+	TenantEntity tenant;
+
 	//////////            Finders
-	@DaoFinder("select re from com.soffid.iam.addons.report.model.ScheduledReportEntity as re where re.name like :name")
+	@DaoFinder("select re from com.soffid.iam.addons.report.model.ScheduledReportEntity as re "
+			+ "where re.name like :name and re.tenant.id=:tenantId")
 	Collection<ScheduledReportEntity> findByNameFilter (String name ) {
 		return null;
 	}

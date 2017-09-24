@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.soffid.iam.api.Configuration;
+import com.soffid.iam.api.Tenant;
 import com.soffid.iam.service.ConfigurationService;
 
 import es.caib.seycon.ng.comu.Configuracio;
@@ -43,26 +44,15 @@ public class ReportSchedulerBootServiceImpl extends
 			return;
 		}
 		
-		SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
-		ExecutorThread executorThread = ExecutorThread.getInstance();
-		executorThread.setReportSchedulerService(getReportSchedulerService());
-		executorThread.setReportService(getReportService());
-		executorThread.setSessionFactory(sessionFactory);
-		executorThread.setDocumentService(getDocumentService());
-		
-		SchedulerThread schedulerThread = SchedulerThread.getInstance();
-		schedulerThread.setReportSchedulerService(getReportSchedulerService());
-		schedulerThread.setExecutorThread(executorThread);
-
-		if (! executorThread.isAlive())
-			executorThread.start();
-		if (! schedulerThread.isAlive())
-			schedulerThread.start();
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	protected void handleTenantBoot(Tenant tenant) throws Exception {
 	}
 
 }

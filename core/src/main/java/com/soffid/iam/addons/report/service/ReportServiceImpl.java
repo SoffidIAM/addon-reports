@@ -20,8 +20,10 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
 import javax.ejb.CreateException;
+import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.type.CustomType;
@@ -51,6 +53,8 @@ import com.soffid.iam.addons.report.model.ReportACLEntity;
 import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ReportEntityDao;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
+import com.soffid.iam.addons.report.service.ejb.ReportExecutor;
+import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
 import com.soffid.iam.api.User;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
@@ -255,7 +259,14 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			
 			getExecutedReportEntityDao().create(er);
 			
-			ExecutorThread.getInstance().newReportCreated();
+			try {
+				String jndi = "java:/openejb/Deployment/ReportExecutorBean/com.soffid.iam.addons.report.service.ejb.ReportExecutor";
+				ReportExecutor bean =
+						(ReportExecutor) new InitialContext().lookup(jndi);
+				bean.newReportCreated();
+			} catch (Exception e) {
+				LogFactory.getLog(getClass()).warn("Error notifying report creation", e);
+			}
 			
 			return getExecutedReportEntityDao().toExecutedReport(er);
 		} else

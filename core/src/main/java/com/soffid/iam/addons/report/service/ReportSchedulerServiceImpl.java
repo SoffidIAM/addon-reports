@@ -107,4 +107,11 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		return new DocumentReference(re.getDocId());
 	}
 
+	@Override
+	protected Long handleGetReportTenantId(long id) throws Exception {
+		ExecutedReportEntityDao dao = getExecutedReportEntityDao();
+		ExecutedReportEntity re = dao.findById(id);
+		return re.getTenant().getId();
+	}
+
 }

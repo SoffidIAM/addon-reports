@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 
 import com.soffid.iam.addons.report.api.ScheduledReport;
+import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
 
 public class SchedulerThread extends Thread {
 	private static SchedulerThread schedulerThread = null;
@@ -23,7 +24,7 @@ public class SchedulerThread extends Thread {
 	private boolean end = false;
 	private ReportSchedulerService reportSchedulerService;
 
-	private ExecutorThread executorThread;
+	private ReportExecutorBean executorThread;
 
 	public void end() {
 		end  = true;
@@ -70,7 +71,7 @@ public class SchedulerThread extends Thread {
 		log.info("Finished.");
 	}
 
-	public void setExecutorThread(ExecutorThread executorThread) {
+	public void setExecutorThread(ReportExecutorBean executorThread) {
 		this.executorThread = executorThread;
 	}
 

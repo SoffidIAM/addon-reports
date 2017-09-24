@@ -121,7 +121,7 @@ public class ACLServiceImpl extends ACLServiceBase {
 		for ( UserGroupEntity ue: ge.getSecondaryGroupUsers())
 			users.add(ue.getUser().getId());
 		
-		for (GroupEntity child: ge.getChildrens())
+		for (GroupEntity child: ge.getChildren())
 			addGroupMembers(child, users);
 }
 

@@ -64,9 +64,9 @@
 			<separator spacing="9px" />
 		</criteris>
 	
-		<navegador id="lista" width="100%">
+		<navegador id="lista" width="100%" height="">
 			<listbox dataPath="/model:/report" fixedLayout="true"
-				height="96%" id="listbox">
+				height="18em" id="listbox">
 				<listhead>
 					<listheader label="${msg['report.name']}" width="100%"/>
 				</listhead>
@@ -271,8 +271,7 @@ es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath
 		        com.soffid.iam.addons.report.api.ScheduledReport report = model.getJXPathContext().getValue("/newReport[1]").getInstance();
 		        com.soffid.iam.addons.report.service.ejb.ReportService reportService =
 		        		new javax.naming.InitialContext()
-		        			.lookup (com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME)
-		        				.create();
+		        			.lookup (com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME);
 		        // Assign params
 		        report.setParams(new LinkedList());
 		        for (Row row: params.getRows().getChildren())
@@ -329,8 +328,7 @@ es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath
 	<attribute name="onStart"><![CDATA[
 	    com.soffid.iam.addons.report.service.ejb.ReportService reportService =
 	   		new javax.naming.InitialContext()
-	   			.lookup (com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME)
-	   				.create();
+	   			.lookup (com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME);
 		waitingForReport.setAttribute("report", event.data);	                                   
  	    org.zkoss.zul.Timer t = new org.zkoss.zul.Timer();
  	    t.setRepeats(true);
@@ -360,11 +358,9 @@ es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath
  	    				
  	    			} else {
  	    				
- 						com.soffid.iam.doc.service.ejb.DocumentServiceHome home = 
+						com.soffid.iam.doc.service.ejb.DocumentService svc =
  								new javax.naming.InitialContext()
  									.lookup (com.soffid.iam.doc.service.ejb.DocumentServiceHome.JNDI_NAME);
- 						com.soffid.iam.doc.service.ejb.DocumentService svc =
- 								home.create();
  						svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(report.getPdfDocument()));
 
  						org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(

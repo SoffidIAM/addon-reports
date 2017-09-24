@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ExecutedReportCriteria;
+import com.soffid.iam.model.TenantEntity;
 import com.soffid.mda.annotation.Column;
 import com.soffid.mda.annotation.DaoFinder;
 import com.soffid.mda.annotation.Depends;
@@ -57,11 +58,19 @@ public class ExecutedReportEntity {
 	@Column(name="ERE_DATE")
 	Date date;
 	
+	@Column(name="ERE_TEN_ID")
+	TenantEntity tenant;
+	
 	// DAO Methods
 	
 	@DaoFinder
 	Collection<ExecutedReportEntity> findByCriteria (ExecutedReportCriteria criteria) { return null; }
 	
-	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r where r.done=:done")
+	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r "
+			+ "where r.done=:done")
 	Collection<ExecutedReportEntity> findPendingReports (boolean done) { return null; }
+
+	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r "
+			+ "where r.id=:id")
+	ExecutedReportEntity findById (Long id) { return null; }
 }

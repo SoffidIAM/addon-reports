@@ -95,11 +95,8 @@
 				}
 				else
 				{
-					com.soffid.iam.doc.service.ejb.DocumentServiceHome home = 
-							new javax.naming.InitialContext()
-								.lookup (com.soffid.iam.doc.service.ejb.DocumentServiceHome.JNDI_NAME);
 					com.soffid.iam.doc.service.ejb.DocumentService svc =
-							home.create();
+						com.soffid.iam.EJBLocator.getDocumentService();
 					svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(doc));
 					org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(
 							name, format, mimeFormat, new com.soffid.iam.doc.api.DocumentInputStream(svc) );

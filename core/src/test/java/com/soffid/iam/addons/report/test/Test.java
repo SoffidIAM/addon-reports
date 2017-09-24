@@ -49,6 +49,9 @@ public class Test extends AbstractHibernateTest {
 
 		ServiceLocator.instance().init("testBeanRefFactory.xml", "beanRefFactory");
 
+		Security.onSyncServer();
+		Security.nestedLogin("master", "anonymous", Security.ALL_PERMISSIONS);
+		
 		configService = (ConfiguracioService) context.getBean (ConfiguracioService.SERVICE_NAME);
 		
 		config ("soffid.ui.docStrategy", "com.soffid.iam.doc.nas.comm.LocalFileSystemStrategy");

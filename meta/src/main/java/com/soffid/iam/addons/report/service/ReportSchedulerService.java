@@ -36,6 +36,9 @@ public class ReportSchedulerService {
 	@Description ("Gets a report document reference")
 	DocumentReference getReportDocument (long id) { return null ; }
 	
+	@Description ("Gets a report tenant")
+	Long getReportTenantId (long id) { return null ; }
+	
 	// Internal service
 	@Description ("Executes a report")
 	@Transactional(propagation=Propagation.REQUIRES_NEW)

@@ -1,4 +1,4 @@
-package com.soffid.iam.addons.report.service;
+package com.soffid.iam.addons.report.service.ejb;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.nio.file.Files;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -19,6 +21,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.Local;
+import javax.ejb.SessionContext;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import javax.ejb.Timeout;
+import javax.ejb.Timer;
+import javax.ejb.TimerConfig;
 
 import net.sf.jasperreports.engine.JRBand;
 import net.sf.jasperreports.engine.JRChild;
@@ -33,6 +45,7 @@ import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.export.ReportExportConfiguration;
 
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -41,148 +54,113 @@ import org.hibernate.classic.Session;
 import bsh.EvalError;
 import bsh.Interpreter;
 
+import com.soffid.iam.ServiceLocator;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ParameterValue;
 import com.soffid.iam.addons.report.api.Report;
+import com.soffid.iam.addons.report.service.ReportSchedulerService;
+import com.soffid.iam.addons.report.service.ReportService;
+import com.soffid.iam.deployer.DeployerService;
 import com.soffid.iam.doc.api.DocumentOutputStream;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
+import com.soffid.iam.utils.Security;
 
 import es.caib.seycon.ng.exception.InternalErrorException;
 
-public class ExecutorThread extends Thread {
-	private static ExecutorThread executorThread = null;
+@Singleton(name="ReportExecutorBean")
+@Local({ReportExecutor.class})
+@Startup
+@javax.ejb.TransactionManagement(value=javax.ejb.TransactionManagementType.CONTAINER)
+@javax.ejb.TransactionAttribute(value=javax.ejb.TransactionAttributeType.SUPPORTS)
+public class ReportExecutorBean implements ReportExecutor {
 	org.apache.commons.logging.Log log = LogFactory.getLog(getClass());
 
-	public ReportSchedulerService getReportSchedulerService() {
-		return reportSchedulerService;
-	}
 
-	public DocumentService getDocumentService() {
-		return documentService;
-	}
-
-	public void setDocumentService(DocumentService documentService) {
-		this.documentService = documentService;
-	}
-
-	public void setReportSchedulerService(
-			ReportSchedulerService reportSchedulerService) {
-		this.reportSchedulerService = reportSchedulerService;
-	}
-
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
-
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-
+	@Resource
+	private SessionContext context;
 	private ReportSchedulerService reportSchedulerService;
 	private ReportService reportService;
-	private boolean end = false;
-
-	public ReportService getReportService() {
-		return reportService;
-	}
-
-	public void setReportService(ReportService reportService) {
-		this.reportService = reportService;
-	}
-
+	private SessionFactory sessionFactory;
 	private DocumentService documentService;
 
-	private SessionFactory sessionFactory;
 
-	public void end() {
-		end = true;
-		synchronized(this)
-		{
-			this.notify();
-		}
+	private File srcdir;
+
+
+	private File jasperFile;
+
+
+	private LinkedList<File> children;
+
+	@PostConstruct
+	public void init() throws Exception {
+		log.info("Started report bean");
+		reportSchedulerService = (ReportSchedulerService) ServiceLocator.instance().getService( ReportSchedulerService.SERVICE_NAME);
+		reportService = (ReportService) ServiceLocator.instance().getService(ReportService.SERVICE_NAME);
+		sessionFactory = (SessionFactory) ServiceLocator.instance().getService("sessionFactory");
+		documentService = (DocumentService) ServiceLocator.instance().getService( DocumentService.SERVICE_NAME);
+
+		context.getTimerService().createTimer(120000, 120000, "Execute report");
 	}
+	
 
 
 	public void newReportCreated() {
-		synchronized (this)
-		{
-			this.notify ();
-		}
+		 context.getTimerService().createSingleActionTimer(500, new TimerConfig());
 	}
 
-	@Override
-	public void run() {
-		setName ("ReportExecutorThread");
-		while ( ! end )
+	@Timeout	
+	@javax.ejb.TransactionAttribute(value=javax.ejb.TransactionAttributeType.SUPPORTS)
+	public void timeOutHandler(Timer timer) throws Exception {
+		try
 		{
-			try
+			log.info("Looking for reports to execute");
+			for (ExecutedReport sr : reportSchedulerService.getPendingReports())
 			{
-				log.info("Looking for reports to execute");
-				for (ExecutedReport sr : reportSchedulerService.getPendingReports())
+				if (sr.getUsers() == null || sr.getUsers().isEmpty())
 				{
-					if (sr.getUsers() == null || sr.getUsers().isEmpty())
-					{
-						sr.setUsers(new LinkedList<String>());
-						sr.getUsers().add("dummy");
-						reportService.remove(sr);
-					}
-					else
-					{
-						try {
-							log.info("Executing report "+sr.getName());
-							execute (sr);
-							sr.setDone(true);
-							sr.setError(false);
-							sr.setErrorMessage(null);
-							reportSchedulerService.updateReport(sr);
-						} catch (Exception e) {
-							log.info("Errr executing report "+sr.getName(), e);
-							sr.setDone(true);
-							sr.setError(true);
-							String msg = e.toString();
-							if (msg.length() > 1000)
-								msg = msg.substring(0, 1000);
-							sr.setErrorMessage(msg);
-							reportSchedulerService.updateReport(sr);
-						}
-					}
+					sr.setUsers(new LinkedList<String>());
+					sr.getUsers().add("dummy");
+					reportService.remove(sr);
 				}
-	
-				synchronized (this)
+				else
 				{
-					this.wait (120000);
-					sleep(1000);// Wait 1 second for caller transaction to commit report execution
-				}
-			} catch (Throwable e) {
-				e.printStackTrace();
-				log.warn("Error on report executor", e);
-				try {
-					sleep(5000);
-				} catch (InterruptedException e1) {
+					Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
+					String tenant = Security.getTenantName(tenantId);
+					JasperReport jasper = generateJasper(sr);
+					Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
+					try {
+						log.info("Executing report "+sr.getName());
+						execute (sr, jasper);
+						sr.setDone(true);
+						sr.setError(false);
+						sr.setErrorMessage(null);
+						reportSchedulerService.updateReport(sr);
+					} catch (Exception e) {
+						log.info("Errr executing report "+sr.getName(), e);
+						sr.setDone(true);
+						sr.setError(true);
+						String msg = e.toString();
+						if (msg.length() > 1000)
+							msg = msg.substring(0, 1000);
+						sr.setErrorMessage(msg);
+						reportSchedulerService.updateReport(sr);
+					} finally {
+						Security.nestedLogoff();
+					}
+					removeJasperFile();
 				}
 			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			log.warn("Error on report executor", e);
 		}
-		log.info ("Finished.");
 	}
 
-	private void execute(ExecutedReport sr) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException, EvalError 
+	private void execute(ExecutedReport sr, JasperReport jasperReport) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException, EvalError 
 	{
-		File srcdir = Files.createTempDirectory("soffid-report").toFile();
-		srcdir.mkdir();
-		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
-
-		File f = new File(srcdir, sr.getName()+".jasper");
-		getDocument(f, r);
-				
-		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (f);
-		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
-		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
-
-		List<File> children = new LinkedList<File>();
-		downloadChildren(srcdir, children, jasperReport);
-		
 		Map<String,Object> v = new HashMap<String, Object>();
 		for (JRParameter jp: jasperReport.getParameters())
 		{
@@ -225,6 +203,8 @@ public class ExecutorThread extends Thread {
 			v.put("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
 			v.put("net.sf.jasperreports.awt.ignore.missing.font", "true");
 			v.put("SUBREPORT_DIR", srcdir.getPath()+"/");
+			v.put("tenant", Security.getCurrentTenantName());
+			v.put("tenantId", Security.getCurrentTenantId());
 	        // preparamos para imprimir
 			JasperPrint jasperPrint;
 
@@ -280,17 +260,41 @@ public class ExecutorThread extends Thread {
 	        	exporterCSV.exportReport(); 
 	        	out.close ();
 	        	sr.setCsvDocument(documentService.getReference().toString());
-	        	documentService.closeDocument();
 	        }
 		} finally {
-			f.delete();
-			for (File f2: children)
-				f2.delete();
-			srcdir.delete();
-	        session.clear();
-	        session.close();
-        	documentService.closeDocument();
+			documentService.closeDocument();
+			session.clear();
+			session.close();
 		}
+	}
+
+
+
+	private void removeJasperFile() throws InternalErrorException {
+		jasperFile.delete();
+		for (File f2: children)
+			f2.delete();
+		srcdir.delete();
+	}
+
+
+
+	private JasperReport generateJasper(ExecutedReport sr)
+			throws IOException, InternalErrorException, DocumentBeanException, JRException {
+		srcdir = Files.createTempDirectory("soffid-report").toFile();
+		srcdir.mkdir();
+		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
+		
+		jasperFile = new File(srcdir, sr.getName()+".jasper");
+		getDocument(jasperFile, r);
+		
+		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (jasperFile);
+		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
+		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+
+		children = new LinkedList<File>();
+		downloadChildren(srcdir, children, jasperReport);
+		return jasperReport;
 	}
 
 	private void downloadChildren(File srcdir, List<File> files, JasperReport jasperReport) throws DocumentBeanException, InternalErrorException, IOException {
@@ -360,16 +364,4 @@ public class ExecutorThread extends Thread {
 	}
 
 
-	private ExecutorThread ()
-	{
-		
-	}
-	
-	public static ExecutorThread getInstance ()
-	{
-		if (executorThread == null)
-			executorThread = new ExecutorThread();
-		
-		return executorThread;
-	}
 }

@@ -9,9 +9,6 @@ public class ReportSchedulerShudownServiceImpl extends
 
 	@Override
 	protected void handleConsoleShutdown() throws Exception {
-		ExecutorThread.getInstance().end();
-		SchedulerThread.getInstance().end();
-
 	}
 
 }

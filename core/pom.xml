@@ -123,14 +123,28 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-ejb-plugin</artifactId>
+				<version>2.5.1</version>
 				<configuration>
 					<archive>
 						<manifest>
-							<addClasspath>true</addClasspath>
+							<addClasspath>false</addClasspath>
 						</manifest>
 					</archive>
-					<generateClient>false</generateClient>
+					<generateClient>true</generateClient>
+					<clientIncludes>
+						<clientInclude>
+							es/caib/seycon/ng/servei/ejb/*.class
+						</clientInclude>
+						<clientInclude>
+							es/caib/seycon/ng/servei/workflow/ejb/*.class
+						</clientInclude>
+						<clientInclude>
+							es/caib/seycon/ng/exception/*.class
+						</clientInclude>
+					</clientIncludes>
+					<ejbVersion>3.0</ejbVersion>
 				</configuration>
 			</plugin>
 		      <plugin>
@@ -267,10 +281,20 @@
 		</dependency>
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
+			<artifactId>iam-tomee</artifactId>
+			<version>${console.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-core</artifactId>
 			<version>${console.version}</version>
-			<scope>provided</scope>
 			<type>ejb</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.openejb</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>6.0-6</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
@@ -346,12 +370,6 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>net.sf.jasperreports</groupId>
-			<artifactId>jasperreports</artifactId>
-			<version>6.4.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>1.8.0.7</version>
@@ -375,6 +393,11 @@
 		    <version>1590792</version>
 		</dependency>
 		-->
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-catalina</artifactId>
+			<version>7.0.30</version>
+		</dependency>
 	</dependencies>
 </project>
 
