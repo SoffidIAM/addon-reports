@@ -20,6 +20,7 @@ import com.soffid.iam.addons.report.api.ParameterValue;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.service.ReportService;
+import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
 import com.soffid.iam.addons.report.service.ReportSchedulerBootService;
 import com.soffid.test.AbstractHibernateTest;
 
@@ -49,7 +50,7 @@ public class Test extends AbstractHibernateTest {
 
 		ServiceLocator.instance().init("testBeanRefFactory.xml", "beanRefFactory");
 
-		Security.onSyncServer();
+//		Security.onSyncServer();
 		Security.nestedLogin("master", "anonymous", Security.ALL_PERMISSIONS);
 		
 		configService = (ConfiguracioService) context.getBean (ConfiguracioService.SERVICE_NAME);
@@ -80,7 +81,7 @@ public class Test extends AbstractHibernateTest {
 		out.close();
 	}
 
-	public void testUpload () throws InternalErrorException, IOException, InterruptedException, IllegalArgumentException, DocumentBeanException
+	public void testUpload () throws Exception
 	{
 		Security.nestedLogin("admin", new String [] {});
 		try {
@@ -99,7 +100,7 @@ public class Test extends AbstractHibernateTest {
 		}
 	}
 
-	private void executeReport(Report r) throws InternalErrorException, InterruptedException, IllegalArgumentException, IOException, DocumentBeanException {
+	private void executeReport(Report r) throws Exception {
 		ScheduledReport schedule = new ScheduledReport();
 		schedule.setCreationDate(new Date());
 		schedule.setName("Report test");
@@ -119,7 +120,9 @@ public class Test extends AbstractHibernateTest {
 		for (int i = 0; !execution.isDone() && i < 100; i++)
 		{
 			System.out.println ("Waiting for report");
-			Thread.sleep(1000);
+			ReportExecutorBean rb = new ReportExecutorBean();
+			rb.connectServices();
+			rb.timeOutHandler(null);
 			execution = reportSvc.getExecutedReportStatus(execution.getId());
 		}
 		
@@ -144,7 +147,7 @@ public class Test extends AbstractHibernateTest {
 		docSvc.closeDocument();
 	}
 
-	public void testUpload2 () throws InternalErrorException, IOException, InterruptedException, IllegalArgumentException, DocumentBeanException
+	public void testUpload2 () throws Exception
 	{
 		Security.nestedLogin("admin", new String [] {});
 		try {

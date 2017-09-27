@@ -97,12 +97,18 @@ public class ReportExecutorBean implements ReportExecutor {
 	@PostConstruct
 	public void init() throws Exception {
 		log.info("Started report bean");
+		connectServices();
+
+		context.getTimerService().createTimer(120000, 120000, "Execute report");
+	}
+
+
+
+	public void connectServices() {
 		reportSchedulerService = (ReportSchedulerService) ServiceLocator.instance().getService( ReportSchedulerService.SERVICE_NAME);
 		reportService = (ReportService) ServiceLocator.instance().getService(ReportService.SERVICE_NAME);
 		sessionFactory = (SessionFactory) ServiceLocator.instance().getService("sessionFactory");
 		documentService = (DocumentService) ServiceLocator.instance().getService( DocumentService.SERVICE_NAME);
-
-		context.getTimerService().createTimer(120000, 120000, "Execute report");
 	}
 	
 
