@@ -7,7 +7,7 @@
 <zk>
 
 <window visible="false" title="${msg['wizardWindow']}" id="wizardWindow" width="80%"
-	height="33em"
+	height="35em"
 	onClose="self.setVisible(false); event.stopPropagation();" 
 	closable="true">
 	<attribute name="onStart"><![CDATA[
@@ -53,7 +53,7 @@
 					
 	<div id="step1" height="25em"  style="padding: 8px;">
 		<label style="font-size: large; color:red" value="${msg['wizard.step1'] }"/>
-		<criteris height="2em"  id="queryWindow" onOK="search()"
+		<criteris height=""  id="queryWindow" onOK="search()"
 			width="100%">
 			<hbox>
 				<label sclass="etiqueta" value="${msg['report.name']}" width="100px"/>
@@ -213,7 +213,7 @@ es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath
 	]]>
 			</attribute>
 		</button>
-		<div style="float:right; padding: 8px;">
+		<div style="text-align:right; padding: 8px;">
 			<button id="prevButton" style="margin: 8px;"  label="${msg['wizard.previous']}">
 				<attribute name="onClick">
 		<![CDATA[
