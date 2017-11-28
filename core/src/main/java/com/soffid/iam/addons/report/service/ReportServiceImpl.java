@@ -76,23 +76,33 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	@Override
 	protected Collection<Report> handleFindReports(String name,
 			boolean exactMatch) throws Exception {
-		List<Report> list;
+		Collection<ReportEntity> entities; 
 		if (exactMatch)
 		{
-			list = new LinkedList<Report>();
 			ReportEntity r = getReportEntityDao().findByName(name);
+			entities = new LinkedList<ReportEntity>();
 			if (r != null)
-				list.add ( getReportEntityDao().toReport(r));
+				entities.add(r);
 		}
 		else if (name == null || name.trim().length() == 0)
 		{
-			list = getReportEntityDao().toReportList(getReportEntityDao().loadAll());
+			entities = getReportEntityDao().loadAll();
 		}
 		else
 		{
-			list = getReportEntityDao().toReportList(getReportEntityDao().findByNameFilter(name));
+			entities = getReportEntityDao().findByNameFilter(name);
 		}
-		return list;
+		
+		if ( ! Security.isUserInRole( "report:admin" ))
+		{
+			for (Iterator<ReportEntity> it = entities.iterator(); it.hasNext();)
+			{
+				ReportEntity r = it.next();
+				if (! canExecute(r))
+					it.remove();
+			}
+		}
+		return getReportEntityDao().toReportList( entities );
 	}
 
 	@SuppressWarnings("unchecked")
