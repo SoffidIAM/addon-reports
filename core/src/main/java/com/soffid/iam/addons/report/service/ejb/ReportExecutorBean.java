@@ -5,15 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.nio.file.Files;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -32,6 +28,24 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
+import org.hibernate.classic.Session;
+
+import com.soffid.iam.ServiceLocator;
+import com.soffid.iam.addons.report.api.ExecutedReport;
+import com.soffid.iam.addons.report.api.ParameterValue;
+import com.soffid.iam.addons.report.api.Report;
+import com.soffid.iam.addons.report.service.ReportSchedulerService;
+import com.soffid.iam.addons.report.service.ReportService;
+import com.soffid.iam.doc.api.DocumentOutputStream;
+import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.doc.exception.DocumentBeanException;
+import com.soffid.iam.doc.service.DocumentService;
+import com.soffid.iam.utils.Security;
+
+import bsh.EvalError;
+import es.caib.seycon.ng.exception.InternalErrorException;
 import net.sf.jasperreports.engine.JRBand;
 import net.sf.jasperreports.engine.JRChild;
 import net.sf.jasperreports.engine.JRException;
@@ -45,29 +59,6 @@ import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
-import net.sf.jasperreports.export.ReportExportConfiguration;
-
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.SessionFactory;
-import org.hibernate.classic.Session;
-
-import bsh.EvalError;
-import bsh.Interpreter;
-
-import com.soffid.iam.ServiceLocator;
-import com.soffid.iam.addons.report.api.ExecutedReport;
-import com.soffid.iam.addons.report.api.ParameterValue;
-import com.soffid.iam.addons.report.api.Report;
-import com.soffid.iam.addons.report.service.ReportSchedulerService;
-import com.soffid.iam.addons.report.service.ReportService;
-import com.soffid.iam.deployer.DeployerService;
-import com.soffid.iam.doc.api.DocumentOutputStream;
-import com.soffid.iam.doc.api.DocumentReference;
-import com.soffid.iam.doc.exception.DocumentBeanException;
-import com.soffid.iam.doc.service.DocumentService;
-import com.soffid.iam.utils.Security;
-
-import es.caib.seycon.ng.exception.InternalErrorException;
 
 @Singleton(name="ReportExecutorBean")
 @Local({ReportExecutor.class})
@@ -135,9 +126,9 @@ public class ReportExecutorBean implements ReportExecutor {
 				{
 					Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
 					String tenant = Security.getTenantName(tenantId);
-					JasperReport jasper = generateJasper(sr);
 					Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
 					try {
+						JasperReport jasper = generateJasper(sr);
 						log.info("Executing report "+sr.getName());
 						execute (sr, jasper);
 						sr.setDone(true);
