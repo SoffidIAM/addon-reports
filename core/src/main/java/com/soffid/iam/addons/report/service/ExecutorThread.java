@@ -30,9 +30,13 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.export.ExporterInput;
+import net.sf.jasperreports.export.ExporterInputItem;
+import net.sf.jasperreports.export.XlsReportConfiguration;
 
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -179,6 +183,12 @@ public class ExecutorThread extends Thread {
 		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (f);
 		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
 		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
 
 		List<File> children = new LinkedList<File>();
 		downloadChildren(srcdir, children, jasperReport);
@@ -225,7 +235,14 @@ public class ExecutorThread extends Thread {
 			v.put("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
 			v.put("net.sf.jasperreports.awt.ignore.missing.font", "true");
 			v.put("SUBREPORT_DIR", srcdir.getPath()+"/");
-	        // preparamos para imprimir
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
+			
+			// preparamos para imprimir
 			JasperPrint jasperPrint;
 
 			Connection conn = session.connection();
@@ -280,6 +297,20 @@ public class ExecutorThread extends Thread {
 	        	exporterCSV.exportReport(); 
 	        	out.close ();
 	        	sr.setCsvDocument(documentService.getReference().toString());
+	        	documentService.closeDocument();
+
+	        	documentService.createDocument("application/xls", sr.getName()+".xls", "report");
+	        	out = new DocumentOutputStream(documentService);
+	        	JRXlsExporter exporterXls = new JRXlsExporter(); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IGNORE_PAGE_MARGINS, true); 
+	        	exporterXls.exportReport(); 
+	        	out.close ();
+	        	sr.setXlsDocument(documentService.getReference().toString());
 	        	documentService.closeDocument();
 	        }
 		} finally {

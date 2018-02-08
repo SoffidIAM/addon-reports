@@ -5,5 +5,6 @@
 	<version>${pom.version}</version>
 	<core name="Report common classes" resource="report-common-${pom.version}.jar"/>
 	<core name="Report core classes" resource="report-core-${pom.version}.jar"/>
+	<core name="Apache POI" resource="poi-3.10.1.jar"/>
 	<web name="Report web files" resource="report-web-${pom.version}.war"/>
 </SoffidIAMPlugin>
