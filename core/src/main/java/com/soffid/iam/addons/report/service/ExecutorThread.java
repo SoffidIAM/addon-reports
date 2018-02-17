@@ -307,6 +307,7 @@ public class ExecutorThread extends Thread {
 	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
 	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
 	        	exporterXls.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, 65000); 
 	        	exporterXls.setParameter(JRXlsExporterParameter.IGNORE_PAGE_MARGINS, true); 
 	        	exporterXls.exportReport(); 
 	        	out.close ();
