@@ -27,6 +27,23 @@ import javax.ejb.Startup;
 import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
+import net.sf.jasperreports.engine.JRBand;
+import net.sf.jasperreports.engine.JRChild;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.JRSubreport;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
+import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.export.ExporterInput;
+import net.sf.jasperreports.export.ExporterInputItem;
+import net.sf.jasperreports.export.XlsReportConfiguration;
 
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -158,6 +175,26 @@ public class ReportExecutorBean implements ReportExecutor {
 
 	private void execute(ExecutedReport sr, JasperReport jasperReport) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException, EvalError 
 	{
+		File srcdir = Files.createTempDirectory("soffid-report").toFile();
+		srcdir.mkdir();
+		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
+
+		File f = new File(srcdir, sr.getName()+".jasper");
+		getDocument(f, r);
+				
+		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (f);
+		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
+		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
+
+		List<File> children = new LinkedList<File>();
+		downloadChildren(srcdir, children, jasperReport);
+		
 		Map<String,Object> v = new HashMap<String, Object>();
 		for (JRParameter jp: jasperReport.getParameters())
 		{
@@ -202,7 +239,14 @@ public class ReportExecutorBean implements ReportExecutor {
 			v.put("SUBREPORT_DIR", srcdir.getPath()+"/");
 			v.put("tenant", Security.getCurrentTenantName());
 			v.put("tenantId", Security.getCurrentTenantId());
-	        // preparamos para imprimir
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
+			
+			// preparamos para imprimir
 			JasperPrint jasperPrint;
 
 			Connection conn = session.connection();
@@ -257,6 +301,22 @@ public class ReportExecutorBean implements ReportExecutor {
 	        	exporterCSV.exportReport(); 
 	        	out.close ();
 	        	sr.setCsvDocument(documentService.getReference().toString());
+	        	documentService.closeDocument();
+
+	        	documentService.createDocument("application/xls", sr.getName()+".xls", "report");
+	        	out = new DocumentOutputStream(documentService);
+	        	JRXlsExporter exporterXls = new JRXlsExporter(); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, 65000); 
+	        	exporterXls.setParameter(JRXlsExporterParameter.IGNORE_PAGE_MARGINS, true); 
+	        	exporterXls.exportReport(); 
+	        	out.close ();
+	        	sr.setXlsDocument(documentService.getReference().toString());
+	        	documentService.closeDocument();
 	        }
 		} finally {
 			documentService.closeDocument();

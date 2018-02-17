@@ -44,6 +44,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		ere.setHtmlDocument(report.getHtmlDocument());
 		ere.setXmlDocument(report.getXmlDocument());
 		ere.setCsvDocument(report.getCsvDocument());
+		ere.setXlsDocument(report.getXlsDocument());
 		getExecutedReportEntityDao().update(ere);
 	}
 

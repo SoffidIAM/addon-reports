@@ -42,7 +42,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.build.directory}/classes</outputDirectory>
-							<includeGroupIds>${pom.groupId}</includeGroupIds>
+							<includeGroupIds>${pom.groupId},org.apache.poi</includeGroupIds>
 							<overWriteIfNewer>true</overWriteIfNewer>
 						</configuration>
 					</execution>
