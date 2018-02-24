@@ -152,8 +152,8 @@ public class ReportExecutorBean implements ReportExecutor {
 						sr.setError(false);
 						sr.setErrorMessage(null);
 						reportSchedulerService.updateReport(sr);
-					} catch (Exception e) {
-						log.info("Errr executing report "+sr.getName(), e);
+					} catch (Throwable e) {
+						log.info("Error executing report "+sr.getName(), e);
 						sr.setDone(true);
 						sr.setError(true);
 						String msg = e.toString();
@@ -175,23 +175,6 @@ public class ReportExecutorBean implements ReportExecutor {
 
 	private void execute(ExecutedReport sr, JasperReport jasperReport) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException, EvalError 
 	{
-		File srcdir = Files.createTempDirectory("soffid-report").toFile();
-		srcdir.mkdir();
-		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
-
-		File f = new File(srcdir, sr.getName()+".jasper");
-		getDocument(f, r);
-				
-		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (f);
-		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
-		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
-		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
-		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
-		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
-		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
-		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
-		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
-
 		List<File> children = new LinkedList<File>();
 		downloadChildren(srcdir, children, jasperReport);
 		
@@ -338,6 +321,7 @@ public class ReportExecutorBean implements ReportExecutor {
 
 	private JasperReport generateJasper(ExecutedReport sr)
 			throws IOException, InternalErrorException, DocumentBeanException, JRException {
+		children = new LinkedList<File>();
 		srcdir = Files.createTempDirectory("soffid-report").toFile();
 		srcdir.mkdir();
 		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
@@ -348,8 +332,13 @@ public class ReportExecutorBean implements ReportExecutor {
 		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (jasperFile);
 		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
 		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
 
-		children = new LinkedList<File>();
 		downloadChildren(srcdir, children, jasperReport);
 		return jasperReport;
 	}
