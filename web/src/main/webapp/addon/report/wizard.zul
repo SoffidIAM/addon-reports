@@ -66,7 +66,7 @@
 	
 		<navegador id="lista" width="100%" height="">
 			<listbox dataPath="/model:/report" fixedLayout="true"
-				height="18em" id="listbox">
+				height="180px" id="listbox">
 				<listhead>
 					<listheader label="${msg['report.name']}" width="100%"/>
 				</listhead>
@@ -99,7 +99,7 @@
 		</form>
 	</div>
 	<div id="step3" height="25em">
-		<form dataPath="/model:/newReport[1]" width="100%" style="padding:8px" onCreate="onEnableSchedule()">
+		<form dataPath="/model:/newReport[1]" width="100%" style="padding:20px" onCreate="onEnableSchedule()">
 			<zscript><![CDATA[
 
 		void onEnableSchedule ()
@@ -120,16 +120,16 @@
 			 
 			]]>
 			</zscript>
-			<label style="font-size: large; color:red" value="${msg['wizard.step3'] }"/>
+			<label style="font-size: large; color:red; margin-bottom: 10px" value="${msg['wizard.step3'] }"/>
 			<radiogroup id="scheduleRadio" onCheck="onEnableSchedule()">
 				<radio id="radionow" label="${msg['radio.executeNow'] }" style="display: block; width=100%" value="${false}"/>
 				<radio id="radioschedule" label="${msg['radio.schedule'] }" disabled="${! canScheduleReports}" style="display: block; 100%" value="${true}"/>
 			</radiogroup>
-			<div width="100%">
+			<div width="100%" style="margin-top: 10px">
 				<label value="${msg['schedule'] }"/> 
 				<input_dada mascara="no empty" maxim="100" bind="@name" id="scheduleTextbox"/>
 			</div>
-			<div>
+			<div  style="margin-top: 10px">
 				<label value="${msg['month']}"></label><input_dada id="schMonth" mascara="no empty" maxim="20" width_custom="5em" bind="@cronMonth"/>
 				<label value="${msg['day']}"></label><input_dada id="schDayOfMonth" mascara="no empty" maxim="20" width_custom="5em" bind="@cronDayOfMonth"/>
 				<label value="${msg['hour'] }"></label><input_dada id="schHour" mascara="no empty" maxim="20" width_custom="5em" bind="@cronHour"/>
@@ -137,7 +137,7 @@
 				<label value="${msg['dayOfWeek'] }"></label><input_dada id="schDayOfWeek" mascara="no empty" maxim="20" width_custom="5em" bind="@cronDayOfWeek"/>
 			</div>
 			
-			<div id="targetDiv">
+			<div id="targetDiv"  style="margin-top: 10px">
 				<label value="${msg['report.acl']}" style="display:inline-block; padding-top: 10px;"></label>			
 				<div style="float:right; width: auto; display: inline;">
 					<button image="~./img/list-add.gif" label="${msg['acl.type.user'] }" id="addUserButton">
