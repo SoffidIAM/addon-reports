@@ -23,6 +23,7 @@ import javax.ejb.CreateException;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
@@ -76,23 +77,33 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	@Override
 	protected Collection<Report> handleFindReports(String name,
 			boolean exactMatch) throws Exception {
-		List<Report> list;
+		Collection<ReportEntity> entities; 
 		if (exactMatch)
 		{
-			list = new LinkedList<Report>();
 			ReportEntity r = getReportEntityDao().findByName(name);
+			entities = new LinkedList<ReportEntity>();
 			if (r != null)
-				list.add ( getReportEntityDao().toReport(r));
+				entities.add(r);
 		}
 		else if (name == null || name.trim().length() == 0)
 		{
-			list = getReportEntityDao().toReportList(getReportEntityDao().loadAll());
+			entities = getReportEntityDao().loadAll();
 		}
 		else
 		{
-			list = getReportEntityDao().toReportList(getReportEntityDao().findByNameFilter(name));
+			entities = getReportEntityDao().findByNameFilter(name);
 		}
-		return list;
+		
+		if ( ! Security.isUserInRole( "report:admin" ))
+		{
+			for (Iterator<ReportEntity> it = entities.iterator(); it.hasNext();)
+			{
+				ReportEntity r = it.next();
+				if (! canExecute(r))
+					it.remove();
+			}
+		}
+		return getReportEntityDao().toReportList( entities );
 	}
 
 	@SuppressWarnings("unchecked")
@@ -133,6 +144,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
     	}
 	}
 	
+	Log log = LogFactory.getLog(getClass());
+	
 	@Override
 	protected Report handleUpload(InputStream report) throws Exception {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
@@ -155,6 +168,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		}
 		else
 		{
+			log.info("Upgrading report definition");
 			r = getReportEntityDao().toReport(re);
 		}
 
@@ -166,26 +180,28 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         	if ( jp.isForPrompting() && ! jp.isSystemDefined())
         	{
         		// Search existing parameter
+        		log.info("Analyzing parameter "+jp.getName());
         		boolean found = false;
         		for (ReportParameter existingParameter: oldParameters)
         		{
+            		log.info("Is "+existingParameter.getName()+"?");
         			if (existingParameter.getName().equals(jp.getName()))
         			{
+        				log.info("Found");
         				found = true;
     		        	if (jp.getDescription() != null)
     		        		existingParameter.setDescription(jp.getDescription());
         				rp.add(existingParameter);
         				ParameterType desired = guessParameterType(jp);
         				ParameterType existing = existingParameter.getType();
-        				if (desired == existing ||
-        					( desired == ParameterType.LONG_PARAM && 
-        						( existing == ParameterType.DISPATCHER_PARAM ||
-        						existing == ParameterType.GROUP_PARAM ||
+        				if (desired.equals(existing) ||
+        						existing == ParameterType.USER_PARAM ||
+        						existing == ParameterType.DISPATCHER_PARAM ||
+        						existing == ParameterType.GROUP_PARAM || 
         						existing == ParameterType.ROLE_PARAM ||
-        						existing == ParameterType.USER_PARAM
-        						
-        					)))
+        						existing == ParameterType.IS_PARAM)
         				{
+            				log.info("Keep data type");
         					// Compatibles types, nothing to do
         				}
         				else
@@ -207,8 +223,12 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         }
         
         r.setParameters(rp);
-        r.setAcl(new LinkedList<String>());
-        r.getAcl().add(Security.getCurrentUser());
+        if (r.getAcl() == null || r.getAcl().isEmpty())
+        {
+        	log.info("Reseting ACL");
+	        r.setAcl(new LinkedList<String>());
+	        r.getAcl().add(Security.getCurrentUser());
+        }
 
         DocumentReference ref = storeDocument (name, data.toByteArray());
         
@@ -344,6 +364,15 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	@Override
 	protected void handleRemove(Report report) throws Exception {
 		ReportEntity re = getReportEntityDao().load(report.getId());
+		for (ScheduledReportEntity sr: re.getSchedules())
+		{
+			getScheduledReportEntityDao().remove(sr);
+		}
+		
+		for (ExecutedReportEntity er: re.getExecutions())
+		{
+			getExecutedReportEntityDao().remove(er);
+		}
 		getReportEntityDao().remove(re);
 	}
 
@@ -565,6 +594,10 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 					ds.deleteDocument(new DocumentReference(ere.getXmlDocument()));
 				if (ere.getPdfDocument() != null)
 					ds.deleteDocument(new DocumentReference(ere.getPdfDocument()));
+				if (ere.getCsvDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getCsvDocument()));
+				if (ere.getXlsDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getXlsDocument()));
 				getExecutedReportEntityDao().remove(ere);
 				
 			} else {

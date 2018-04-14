@@ -5,15 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.nio.file.Files;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -32,6 +28,24 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
+import org.hibernate.classic.Session;
+
+import com.soffid.iam.ServiceLocator;
+import com.soffid.iam.addons.report.api.ExecutedReport;
+import com.soffid.iam.addons.report.api.ParameterValue;
+import com.soffid.iam.addons.report.api.Report;
+import com.soffid.iam.addons.report.service.ReportSchedulerService;
+import com.soffid.iam.addons.report.service.ReportService;
+import com.soffid.iam.doc.api.DocumentOutputStream;
+import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.doc.exception.DocumentBeanException;
+import com.soffid.iam.doc.service.DocumentService;
+import com.soffid.iam.utils.Security;
+
+import bsh.EvalError;
+import es.caib.seycon.ng.exception.InternalErrorException;
 import net.sf.jasperreports.engine.JRBand;
 import net.sf.jasperreports.engine.JRChild;
 import net.sf.jasperreports.engine.JRException;
@@ -42,32 +56,10 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
-import net.sf.jasperreports.export.ReportExportConfiguration;
-
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.SessionFactory;
-import org.hibernate.classic.Session;
-
-import bsh.EvalError;
-import bsh.Interpreter;
-
-import com.soffid.iam.ServiceLocator;
-import com.soffid.iam.addons.report.api.ExecutedReport;
-import com.soffid.iam.addons.report.api.ParameterValue;
-import com.soffid.iam.addons.report.api.Report;
-import com.soffid.iam.addons.report.service.ReportSchedulerService;
-import com.soffid.iam.addons.report.service.ReportService;
-import com.soffid.iam.deployer.DeployerService;
-import com.soffid.iam.doc.api.DocumentOutputStream;
-import com.soffid.iam.doc.api.DocumentReference;
-import com.soffid.iam.doc.exception.DocumentBeanException;
-import com.soffid.iam.doc.service.DocumentService;
-import com.soffid.iam.utils.Security;
-
-import es.caib.seycon.ng.exception.InternalErrorException;
 
 @Singleton(name="ReportExecutorBean")
 @Local({ReportExecutor.class})
@@ -125,7 +117,12 @@ public class ReportExecutorBean implements ReportExecutor {
 			log.info("Looking for reports to execute");
 			for (ExecutedReport sr : reportSchedulerService.getPendingReports())
 			{
-				if (sr.getUsers() == null || sr.getUsers().isEmpty())
+				sr = reportSchedulerService.lockToStart(sr);
+				if (sr == null)
+				{
+					// Locked by anyone else
+				}
+				else if (sr.getUsers() == null || sr.getUsers().isEmpty())
 				{
 					sr.setUsers(new LinkedList<String>());
 					sr.getUsers().add("dummy");
@@ -135,17 +132,17 @@ public class ReportExecutorBean implements ReportExecutor {
 				{
 					Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
 					String tenant = Security.getTenantName(tenantId);
-					JasperReport jasper = generateJasper(sr);
 					Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
 					try {
+						JasperReport jasper = generateJasper(sr);
 						log.info("Executing report "+sr.getName());
 						execute (sr, jasper);
 						sr.setDone(true);
 						sr.setError(false);
 						sr.setErrorMessage(null);
 						reportSchedulerService.updateReport(sr);
-					} catch (Exception e) {
-						log.info("Errr executing report "+sr.getName(), e);
+					} catch (Throwable e) {
+						log.info("Error executing report "+sr.getName(), e);
 						sr.setDone(true);
 						sr.setError(true);
 						String msg = e.toString();
@@ -167,6 +164,9 @@ public class ReportExecutorBean implements ReportExecutor {
 
 	private void execute(ExecutedReport sr, JasperReport jasperReport) throws InternalErrorException, ParseException, DocumentBeanException, IOException, JRException, EvalError 
 	{
+		List<File> children = new LinkedList<File>();
+		downloadChildren(srcdir, children, jasperReport);
+		
 		Map<String,Object> v = new HashMap<String, Object>();
 		for (JRParameter jp: jasperReport.getParameters())
 		{
@@ -211,7 +211,14 @@ public class ReportExecutorBean implements ReportExecutor {
 			v.put("SUBREPORT_DIR", srcdir.getPath()+"/");
 			v.put("tenant", Security.getCurrentTenantName());
 			v.put("tenantId", Security.getCurrentTenantId());
-	        // preparamos para imprimir
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
+			v.put("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
+			v.put("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
+			
+			// preparamos para imprimir
 			JasperPrint jasperPrint;
 
 			Connection conn = session.connection();
@@ -254,18 +261,43 @@ public class ReportExecutorBean implements ReportExecutor {
 	        	jar.close ();
 	        	sr.setHtmlDocument(documentService.getReference().toString());
 	        	documentService.closeDocument();
-	        	
-	        	documentService.createDocument("text/csv", sr.getName()+".csv", "report");
-	        	out = new DocumentOutputStream(documentService);
-	        	JRCsvExporter exporterCSV = new JRCsvExporter(); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
-	        	exporterCSV.exportReport(); 
-	        	out.close ();
-	        	sr.setCsvDocument(documentService.getReference().toString());
+
+	        	try {
+		        	documentService.createDocument("text/csv", sr.getName()+".csv", "report");
+		        	out = new DocumentOutputStream(documentService);
+		        	JRCsvExporter exporterCSV = new JRCsvExporter(); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+		        	exporterCSV.exportReport(); 
+		        	out.close ();
+		        	sr.setCsvDocument(documentService.getReference().toString());
+		        	documentService.closeDocument();
+	        	} catch (Exception e) {
+	        		log.warn("Unable to generate CSV file");
+	        	}
+
+	        	try {
+		        	documentService.createDocument("application/xls", sr.getName()+".xls", "report");
+		        	out = new DocumentOutputStream(documentService);
+		        	JRXlsExporter exporterXls = new JRXlsExporter(); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, 65000); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IGNORE_PAGE_MARGINS, true); 
+		        	exporterXls.exportReport(); 
+		        	out.close ();
+		        	sr.setXlsDocument(documentService.getReference().toString());
+		        	documentService.closeDocument();
+	        	} catch (Exception e) {
+	        		log.warn("Unable to generate XLS file");
+	        	}
+
 	        }
 		} finally {
 			documentService.closeDocument();
@@ -287,6 +319,7 @@ public class ReportExecutorBean implements ReportExecutor {
 
 	private JasperReport generateJasper(ExecutedReport sr)
 			throws IOException, InternalErrorException, DocumentBeanException, JRException {
+		children = new LinkedList<File>();
 		srcdir = Files.createTempDirectory("soffid-report").toFile();
 		srcdir.mkdir();
 		DocumentReference r = reportSchedulerService.getReportDocument(sr.getReportId());
@@ -297,8 +330,13 @@ public class ReportExecutorBean implements ReportExecutor {
 		JasperReport jasperReport = (JasperReport) JRLoader.loadObject (jasperFile);
 		jasperReport.setProperty("net.sf.jasperreports.awt.ignore.missing.font", "true");
 		jasperReport.setProperty("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3", "columnHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
+		jasperReport.setProperty("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
 
-		children = new LinkedList<File>();
 		downloadChildren(srcdir, children, jasperReport);
 		return jasperReport;
 	}

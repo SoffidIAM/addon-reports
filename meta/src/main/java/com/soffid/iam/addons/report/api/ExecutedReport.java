@@ -3,6 +3,7 @@ package com.soffid.iam.addons.report.api;
 import java.util.Collection;
 import java.util.Date;
 
+import com.soffid.mda.annotation.Column;
 import com.soffid.mda.annotation.Nullable;
 import com.soffid.mda.annotation.ValueObject;
 
@@ -22,4 +23,5 @@ public class ExecutedReport {
 	@Nullable String xmlDocument;
 	@Nullable String htmlDocument;
 	@Nullable String csvDocument;
+	@Nullable String xlsDocument;
 }

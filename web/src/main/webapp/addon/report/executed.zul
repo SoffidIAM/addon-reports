@@ -87,6 +87,23 @@
 				}
 			}
 
+			void downloadXls (Component c)
+			{
+				es.caib.zkib.binder.BindContext ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(c);
+				Boolean error = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@error");
+				if (error)
+				{
+					String errorMsg = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@errorMessage");
+					es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(errorMsg, "ERROR");	
+				}
+				else
+				{
+					String doc = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@xlsDocument");
+					String name = es.caib.zkib.datasource.XPathUtils.getValue(ctx, "@name");
+					download (name+".xls", doc, "xls", "application/xls");
+				}
+			}
+
 			void download (String name, String doc, String format, String mimeFormat)
 			{
 				if (doc == null)
@@ -144,6 +161,7 @@
 						<label value="[XML]" style="margin-left: 2em" onClick="downloadxml(self)" sclass="report"/>
 						<label value="[HTML]" style="margin-left: 2em" onClick="downloadhtml(self)" sclass="report"/>
 						<label value="[CSV]" style="margin-left: 2em" onClick="downloadCsv(self)" sclass="report"/>
+						<label value="[XLS]" style="margin-left: 2em" onClick="downloadXls(self)" sclass="report"/>
 					</div>
 					<datebox disabled="true" bind="@date" width="10em" format="${c:l('accounts.dateFormat')}" buttonVisible="false" ></datebox>
 					<imageclic align="right" src="~./img/list-remove.gif">

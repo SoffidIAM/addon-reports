@@ -41,7 +41,7 @@
 			
 			void download ()
 			{
-				File tmpDir = new File(System.getProperty("jboss.server.temp.dir"));
+				File tmpDir = new File(System.getProperty("java.io.tmpdir"));
 				File f = new File (tmpDir, "ireport-addon.jar");
 				com.soffid.iam.addons.report.service.ejb.ReportService ejb = new javax.naming.InitialContext().lookup
 					( com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME );

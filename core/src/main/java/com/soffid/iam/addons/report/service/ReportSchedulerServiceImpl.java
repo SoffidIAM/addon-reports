@@ -1,5 +1,6 @@
 package com.soffid.iam.addons.report.service;
 
+import java.net.InetAddress;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		ere.setHtmlDocument(report.getHtmlDocument());
 		ere.setXmlDocument(report.getXmlDocument());
 		ere.setCsvDocument(report.getCsvDocument());
+		ere.setXlsDocument(report.getXlsDocument());
 		getExecutedReportEntityDao().update(ere);
 	}
 
@@ -112,6 +114,22 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		ExecutedReportEntityDao dao = getExecutedReportEntityDao();
 		ExecutedReportEntity re = dao.findById(id);
 		return re.getTenant().getId();
+	}
+
+	@Override
+	protected ExecutedReport handleLockToStart(ExecutedReport report) throws Exception {
+		ExecutedReportEntityDao dao = getExecutedReportEntityDao();
+		ExecutedReportEntity re = dao.findById(report.getId());
+		dao.lock(re);
+		String hostName = InetAddress.getLocalHost().getHostName();
+		if (re.getLockedby() == null || re.getLockedby().equals(hostName))
+		{
+			re.setLockedby(hostName);
+			dao.update(re);
+			return dao.toExecutedReport(re);			
+		}
+		else
+			return null;
 	}
 
 }

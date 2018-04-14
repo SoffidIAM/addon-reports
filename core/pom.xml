@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<artifactId>report</artifactId>
 		<groupId>com.soffid.iam.addon.report</groupId>
@@ -34,61 +35,61 @@
 			<plugin>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
-				        <execution>
-				                <goals>
-				                        <goal>unpack</goal>
-				                </goals>
-				                <phase>generate-sources</phase>
-				        </execution>
+					<execution>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<phase>generate-sources</phase>
+					</execution>
 				</executions>
 				<configuration>
-				        <artifactItems>
-				                <artifactItem>
-				                        <groupId>${pom.groupId}</groupId>
-				                        <artifactId>meta</artifactId>
-				                        <version>${pom.version}</version>
-				                        <classifier>core</classifier>
-				                        <type>zip</type>
-				                        <overWrite>true</overWrite>
-				                        <outputDirectory>${project.build.directory}/src</outputDirectory>
-				                </artifactItem>
-				                <artifactItem>
-				                        <groupId>${pom.groupId}</groupId>
-				                        <artifactId>meta</artifactId>
-				                        <version>${pom.version}</version>
-				                        <classifier>core-resource</classifier>
-				                        <type>zip</type>
-				                        <overWrite>true</overWrite>
-				                        <outputDirectory>${project.build.directory}/resources</outputDirectory>
-				                </artifactItem>
-				                <artifactItem>
-				                        <groupId>${pom.groupId}</groupId>
-				                        <artifactId>meta</artifactId>
-				                        <version>${pom.version}</version>
-				                        <classifier>core-src</classifier>
-				                        <type>zip</type>
-				                        <overWrite>false</overWrite>
-				                        <outputDirectory>${project.build.directory}/src-template</outputDirectory>
-				                </artifactItem>
-				                <artifactItem>
-				                        <groupId>${pom.groupId}</groupId>
-				                        <artifactId>meta</artifactId>
-				                        <version>${pom.version}</version>
-				                        <classifier>test</classifier>
-				                        <type>zip</type>
-				                        <overWrite>true</overWrite>
-				                       <outputDirectory>${project.build.directory}/src-test</outputDirectory>
-				                </artifactItem>
-				                <artifactItem>
-				                        <groupId>${pom.groupId}</groupId>
-				                        <artifactId>meta</artifactId>
-				                        <version>${pom.version}</version>
-				                        <classifier>test-resource</classifier>
-				                        <type>zip</type>
-				                        <overWrite>true</overWrite>
-				                        <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
-				                </artifactItem>
-				        </artifactItems>
+					<artifactItems>
+						<artifactItem>
+							<groupId>${pom.groupId}</groupId>
+							<artifactId>meta</artifactId>
+							<version>${pom.version}</version>
+							<classifier>core</classifier>
+							<type>zip</type>
+							<overWrite>true</overWrite>
+							<outputDirectory>${project.build.directory}/src</outputDirectory>
+						</artifactItem>
+						<artifactItem>
+							<groupId>${pom.groupId}</groupId>
+							<artifactId>meta</artifactId>
+							<version>${pom.version}</version>
+							<classifier>core-resource</classifier>
+							<type>zip</type>
+							<overWrite>true</overWrite>
+							<outputDirectory>${project.build.directory}/resources</outputDirectory>
+						</artifactItem>
+						<artifactItem>
+							<groupId>${pom.groupId}</groupId>
+							<artifactId>meta</artifactId>
+							<version>${pom.version}</version>
+							<classifier>core-src</classifier>
+							<type>zip</type>
+							<overWrite>false</overWrite>
+							<outputDirectory>${project.build.directory}/src-template</outputDirectory>
+						</artifactItem>
+						<artifactItem>
+							<groupId>${pom.groupId}</groupId>
+							<artifactId>meta</artifactId>
+							<version>${pom.version}</version>
+							<classifier>test</classifier>
+							<type>zip</type>
+							<overWrite>true</overWrite>
+							<outputDirectory>${project.build.directory}/src-test</outputDirectory>
+						</artifactItem>
+						<artifactItem>
+							<groupId>${pom.groupId}</groupId>
+							<artifactId>meta</artifactId>
+							<version>${pom.version}</version>
+							<classifier>test-resource</classifier>
+							<type>zip</type>
+							<overWrite>true</overWrite>
+							<outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+						</artifactItem>
+					</artifactItems>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -96,30 +97,30 @@
 				<artifactId>build-helper-maven-plugin</artifactId>
 				<version>1.7</version>
 				<executions>
-				        <execution>
-				                <id>add-sources</id>
-				                <phase>generate-sources</phase>
-				                <goals>
-				                        <goal>add-source</goal>
-				                </goals>
-				                <configuration>
-				                        <sources>
-				                                <source>target/src</source>
-				                        </sources>
-				                </configuration>
-				        </execution>
-				        <execution>
-				                <id>add-test-sources</id>
-				                <phase>generate-test-sources</phase>
-				                <goals>
-				                        <goal>add-test-source</goal>
-				                </goals>
-				                <configuration>
-				                        <sources>
-				                                <source>target/src-test</source>
-				                        </sources>
-				                </configuration>
-				        </execution>
+					<execution>
+						<id>add-sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>target/src</source>
+							</sources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>add-test-sources</id>
+						<phase>generate-test-sources</phase>
+						<goals>
+							<goal>add-test-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>target/src-test</source>
+							</sources>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -147,42 +148,43 @@
 					<ejbVersion>3.0</ejbVersion>
 				</configuration>
 			</plugin>
-		      <plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-		        <artifactId>maven-shade-plugin</artifactId>
-		        <executions>
-		          <execution>
-		            <id>afefeixdeps</id>
-		            <phase>package</phase>
-		            <goals>
-		              <goal>shade</goal>
-		            </goals>
-		            <configuration>
-			      <createDependencyReducedPom>false</createDependencyReducedPom>
-		              <artifactSet>
-		                <includes>
-		                  <include>net.sf.jasperreports:jasperreports</include>
-		                  <include>org.codehaus.groovy:groovy-all</include>
-		                  <include>com.google.code.maven-play-plugin.org.apache.commons:commons-javaflow</include>
-		                </includes>
-		              </artifactSet>
-		            </configuration>
-		          </execution>
-		        </executions>
-      </plugin>
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-compiler-plugin</artifactId>
-      <configuration>
-        <source>1.5</source>
-        <target>1.5</target>
-      </configuration>
-    </plugin>
-			 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>afefeixdeps</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<artifactSet>
+								<includes>
+									<include>net.sf.jasperreports:jasperreports</include>
+									<include>org.codehaus.groovy:groovy-all</include>
+									<include>com.google.code.maven-play-plugin.org.apache.commons:commons-javaflow</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -380,23 +382,36 @@
 			<artifactId>groovy-all</artifactId>
 			<version>1.8.9</version>
 		</dependency>
-		
+
 		<dependency>
-		    <groupId>net.tascalate.javaflow</groupId>
-		    <artifactId>net.tascalate.javaflow.api</artifactId>
-		    <version>2.0</version>
+			<groupId>net.tascalate.javaflow</groupId>
+			<artifactId>net.tascalate.javaflow.api</artifactId>
+			<version>2.0</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.code.maven-play-plugin.org.apache.commons/commons-javaflow 
-		<dependency>
-		    <groupId>com.google.code.maven-play-plugin.org.apache.commons</groupId>
-		    <artifactId>commons-javaflow</artifactId>
-		    <version>1590792</version>
-		</dependency>
-		-->
+			<dependency> <groupId>com.google.code.maven-play-plugin.org.apache.commons</groupId> 
+			<artifactId>commons-javaflow</artifactId> <version>1590792</version> </dependency> -->
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-catalina</artifactId>
 			<version>7.0.30</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.10.1</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.soffid.iam.console</groupId>
+			<artifactId>dbtools</artifactId>
+			<version>1.8</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
