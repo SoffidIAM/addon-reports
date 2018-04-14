@@ -23,6 +23,7 @@ import javax.ejb.CreateException;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
@@ -143,6 +144,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
     	}
 	}
 	
+	Log log = LogFactory.getLog(getClass());
+	
 	@Override
 	protected Report handleUpload(InputStream report) throws Exception {
 		ByteArrayOutputStream data = new ByteArrayOutputStream();
@@ -165,6 +168,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		}
 		else
 		{
+			log.info("Upgrading report definition");
 			r = getReportEntityDao().toReport(re);
 		}
 
@@ -176,26 +180,28 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         	if ( jp.isForPrompting() && ! jp.isSystemDefined())
         	{
         		// Search existing parameter
+        		log.info("Analyzing parameter "+jp.getName());
         		boolean found = false;
         		for (ReportParameter existingParameter: oldParameters)
         		{
+            		log.info("Is "+existingParameter.getName()+"?");
         			if (existingParameter.getName().equals(jp.getName()))
         			{
+        				log.info("Found");
         				found = true;
     		        	if (jp.getDescription() != null)
     		        		existingParameter.setDescription(jp.getDescription());
         				rp.add(existingParameter);
         				ParameterType desired = guessParameterType(jp);
         				ParameterType existing = existingParameter.getType();
-        				if (desired == existing ||
-        					( desired == ParameterType.LONG_PARAM && 
-        						( existing == ParameterType.DISPATCHER_PARAM ||
-        						existing == ParameterType.GROUP_PARAM ||
+        				if (desired.equals(existing) ||
+        						existing == ParameterType.USER_PARAM ||
+        						existing == ParameterType.DISPATCHER_PARAM ||
+        						existing == ParameterType.GROUP_PARAM || 
         						existing == ParameterType.ROLE_PARAM ||
-        						existing == ParameterType.USER_PARAM
-        						
-        					)))
+        						existing == ParameterType.IS_PARAM)
         				{
+            				log.info("Keep data type");
         					// Compatibles types, nothing to do
         				}
         				else
@@ -217,8 +223,12 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         }
         
         r.setParameters(rp);
-        r.setAcl(new LinkedList<String>());
-        r.getAcl().add(Security.getCurrentUser());
+        if (r.getAcl() == null || r.getAcl().isEmpty())
+        {
+        	log.info("Reseting ACL");
+	        r.setAcl(new LinkedList<String>());
+	        r.getAcl().add(Security.getCurrentUser());
+        }
 
         DocumentReference ref = storeDocument (name, data.toByteArray());
         
@@ -354,6 +364,15 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	@Override
 	protected void handleRemove(Report report) throws Exception {
 		ReportEntity re = getReportEntityDao().load(report.getId());
+		for (ScheduledReportEntity sr: re.getSchedules())
+		{
+			getScheduledReportEntityDao().remove(sr);
+		}
+		
+		for (ExecutedReportEntity er: re.getExecutions())
+		{
+			getExecutedReportEntityDao().remove(er);
+		}
 		getReportEntityDao().remove(re);
 	}
 

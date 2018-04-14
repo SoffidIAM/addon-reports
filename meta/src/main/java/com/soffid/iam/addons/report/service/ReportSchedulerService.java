@@ -33,6 +33,9 @@ public class ReportSchedulerService {
 	@Description ("Guess pending reports to inmediately run")
 	List<ExecutedReport> getPendingReports () { return null ; }
 	
+	@Description ("Locks repoprt to execute it")
+	ExecutedReport lockToStart (ExecutedReport report) { return null ; }
+	
 	@Description ("Gets a report document reference")
 	DocumentReference getReportDocument (long id) { return null ; }
 	

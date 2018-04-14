@@ -27,23 +27,6 @@ import javax.ejb.Startup;
 import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
-import net.sf.jasperreports.engine.JRBand;
-import net.sf.jasperreports.engine.JRChild;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRParameter;
-import net.sf.jasperreports.engine.JRSubreport;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.export.JRCsvExporter;
-import net.sf.jasperreports.engine.export.JRXlsExporter;
-import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
-import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
-import net.sf.jasperreports.engine.util.JRLoader;
-import net.sf.jasperreports.export.ExporterInput;
-import net.sf.jasperreports.export.ExporterInputItem;
-import net.sf.jasperreports.export.XlsReportConfiguration;
 
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -73,6 +56,7 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
@@ -133,7 +117,12 @@ public class ReportExecutorBean implements ReportExecutor {
 			log.info("Looking for reports to execute");
 			for (ExecutedReport sr : reportSchedulerService.getPendingReports())
 			{
-				if (sr.getUsers() == null || sr.getUsers().isEmpty())
+				sr = reportSchedulerService.lockToStart(sr);
+				if (sr == null)
+				{
+					// Locked by anyone else
+				}
+				else if (sr.getUsers() == null || sr.getUsers().isEmpty())
 				{
 					sr.setUsers(new LinkedList<String>());
 					sr.getUsers().add("dummy");
@@ -272,34 +261,43 @@ public class ReportExecutorBean implements ReportExecutor {
 	        	jar.close ();
 	        	sr.setHtmlDocument(documentService.getReference().toString());
 	        	documentService.closeDocument();
-	        	
-	        	documentService.createDocument("text/csv", sr.getName()+".csv", "report");
-	        	out = new DocumentOutputStream(documentService);
-	        	JRCsvExporter exporterCSV = new JRCsvExporter(); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
-	        	exporterCSV.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
-	        	exporterCSV.exportReport(); 
-	        	out.close ();
-	        	sr.setCsvDocument(documentService.getReference().toString());
-	        	documentService.closeDocument();
 
-	        	documentService.createDocument("application/xls", sr.getName()+".xls", "report");
-	        	out = new DocumentOutputStream(documentService);
-	        	JRXlsExporter exporterXls = new JRXlsExporter(); 
-	        	exporterXls.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
-	        	exporterXls.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
-	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
-	        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
-	        	exporterXls.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
-	        	exporterXls.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, 65000); 
-	        	exporterXls.setParameter(JRXlsExporterParameter.IGNORE_PAGE_MARGINS, true); 
-	        	exporterXls.exportReport(); 
-	        	out.close ();
-	        	sr.setXlsDocument(documentService.getReference().toString());
-	        	documentService.closeDocument();
+	        	try {
+		        	documentService.createDocument("text/csv", sr.getName()+".csv", "report");
+		        	out = new DocumentOutputStream(documentService);
+		        	JRCsvExporter exporterCSV = new JRCsvExporter(); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
+		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+		        	exporterCSV.exportReport(); 
+		        	out.close ();
+		        	sr.setCsvDocument(documentService.getReference().toString());
+		        	documentService.closeDocument();
+	        	} catch (Exception e) {
+	        		log.warn("Unable to generate CSV file");
+	        	}
+
+	        	try {
+		        	documentService.createDocument("application/xls", sr.getName()+".xls", "report");
+		        	out = new DocumentOutputStream(documentService);
+		        	JRXlsExporter exporterXls = new JRXlsExporter(); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, 65000); 
+		        	exporterXls.setParameter(JRXlsExporterParameter.IGNORE_PAGE_MARGINS, true); 
+		        	exporterXls.exportReport(); 
+		        	out.close ();
+		        	sr.setXlsDocument(documentService.getReference().toString());
+		        	documentService.closeDocument();
+	        	} catch (Exception e) {
+	        		log.warn("Unable to generate XLS file");
+	        	}
+
 	        }
 		} finally {
 			documentService.closeDocument();

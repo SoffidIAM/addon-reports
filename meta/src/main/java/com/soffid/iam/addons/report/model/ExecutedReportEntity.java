@@ -8,6 +8,7 @@ import com.soffid.iam.addons.report.api.ExecutedReportCriteria;
 import com.soffid.iam.model.TenantEntity;
 import com.soffid.mda.annotation.Column;
 import com.soffid.mda.annotation.DaoFinder;
+import com.soffid.mda.annotation.DaoOperation;
 import com.soffid.mda.annotation.Depends;
 import com.soffid.mda.annotation.Entity;
 import com.soffid.mda.annotation.Identifier;
@@ -65,6 +66,10 @@ public class ExecutedReportEntity {
 	@Column(name="ERE_TEN_ID")
 	TenantEntity tenant;
 	
+	@Column(name="ERE_LOCK")
+	@Nullable
+	String lockedby;
+	
 	// DAO Methods
 	
 	@DaoFinder
@@ -77,4 +82,8 @@ public class ExecutedReportEntity {
 	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r "
 			+ "where r.id=:id")
 	ExecutedReportEntity findById (Long id) { return null; }
+
+	@DaoOperation
+	void lock (ExecutedReportEntity entity) {};
+
 }

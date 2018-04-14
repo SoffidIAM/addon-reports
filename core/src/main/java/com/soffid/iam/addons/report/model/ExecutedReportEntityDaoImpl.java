@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import org.hibernate.LockMode;
+
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ParameterValue;
 
@@ -71,6 +73,11 @@ public class ExecutedReportEntityDaoImpl extends ExecutedReportEntityDaoBase
 								source.getParams())));
 		for (ExecutedReportParameterEntity erpe: target.getParameters())
 			erpe.setReport(target);
+	}
+
+	@Override
+	protected void handleLock(ExecutedReportEntity entity) throws Exception {
+		getSession().lock(entity, LockMode.UPGRADE);
 	}
 	
 }
