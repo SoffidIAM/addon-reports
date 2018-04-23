@@ -47,6 +47,9 @@ public class ExecutedReportEntity {
 	@Column(name="ERE_XLSDOC", length=128)
 	String xlsDocument;
 
+	@Column(name="ERE_NOTIF", defaultValue="false")
+	Boolean notify;
+	
 	@Column(name="ERE_DONE", defaultValue="false")
 	boolean done;
 	
