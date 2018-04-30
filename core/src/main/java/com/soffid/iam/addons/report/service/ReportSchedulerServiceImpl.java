@@ -69,7 +69,9 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 						+ Messages.getString("ReportSchedulerServiceImpl.3") //$NON-NLS-1$
 						+ "<b>"+ere.getName()+"</b>" //$NON-NLS-1$ //$NON-NLS-2$
 								+ Messages.getString("ReportSchedulerServiceImpl.6") //$NON-NLS-1$
-								+ "<a href='http://"+System.getProperty("hostName")+Messages.getString("ReportSchedulerServiceImpl.9")+System.getProperty("domainName")+":8080/index.zul?target=addon/report/report.zul'>" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+								+ "<a href='http://"+System.getProperty("hostName")+"."+System.getProperty("domainName")+":8080/index.zul?target=addon/report/report.zul?id=" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+								+ report.getId()
+								+"'>" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 								+Messages.getString("ReportSchedulerServiceImpl.0") //$NON-NLS-1$
 								+"</a>" //$NON-NLS-1$
 								+"</body></html>"); //$NON-NLS-1$
