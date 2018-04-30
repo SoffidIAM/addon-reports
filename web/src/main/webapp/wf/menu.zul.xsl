@@ -11,6 +11,10 @@
 			boolean canViewReports = es.caib.seycon.ng.utils.Security.isUserInRole("seu:report:show/*");
 		</zul:zscript>
 	</xsl:template>
+	        
+    <xsl:template match="zul:tree/zul:treechildren/zul:treeitem[4]/@if" priority="3">
+        <xsl:attribute name="if"><xsl:value-of select="substring(.,0,string-length(.))"></xsl:value-of> || canViewReports}</xsl:attribute>
+    </xsl:template>
 	
 	<xsl:template match="zul:tree/zul:treechildren/zul:treeitem[4]/zul:treechildren" priority="3">
 		<xsl:copy>

@@ -9,14 +9,26 @@
 
 	<datamodel id="model" rootNode="root" src="addon/report/descriptorReport.xml"/>
 	
+	<embed id="wizardEmbed" src="/addon/report//wizard.zul"/> 
+
 	<zscript><![CDATA[
 		boolean canScheduleReports = Executions.getCurrent().isUserInRole("report:schedule");
 		boolean canAdminReports = Executions.getCurrent().isUserInRole("report:admin");
 		com.soffid.iam.addons.report.web.Messages msg = new com.soffid.iam.addons.report.web.Messages();
+        String reportIdString = execution.getNativeRequest().getParameter("id");
 	]]></zscript>
 	
 	<frame saveContent="true"
 		title="${c:l('reports.menu')}" width="99%">
+		<attribute name="onCreate">
+		if (reportIdString != null)
+		{
+		        r = new  com.soffid.iam.addons.report.api.ExecutedReport();
+		        r.id = Long.parseLong (reportIdString);
+		        Events.postEvent("onStart", wizardEmbed.getFellow("waitingForReport"), r);
+		}
+		</attribute>
+		
 		<tabbox>
 			<tabs>
 				<tab label="${msg['report.executedReports'] }" ></tab>
@@ -32,7 +44,6 @@
 	</frame>
 
 	
-	<embed id="wizardEmbed" src="/addon/report//wizard.zul"/> 
 	<include src="usuarisllista.zul"/> 
     <include src="grupsllista.zul"/>
 	<include src="rolsllista.zul"/>
