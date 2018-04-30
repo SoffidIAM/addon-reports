@@ -15,6 +15,7 @@ import com.soffid.iam.addons.report.model.ExecutedReportTargetEntity;
 import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
 import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.service.MailService;
 import com.soffid.mda.annotation.Depends;
 import com.soffid.mda.annotation.Description;
 import com.soffid.mda.annotation.Service;
@@ -24,6 +25,7 @@ import es.caib.seycon.ng.model.UsuariEntity;
 @Service(internal=true)
 @Depends({ReportService.class, ExecutedReportEntity.class, ScheduledReportEntity.class, 
 		ReportEntity.class, UsuariEntity.class, ExecutedReportTargetEntity.class, ExecutedReportParameterEntity.class,
+		MailService.class,
 		ACLService.class})
 public class ReportSchedulerService {
 

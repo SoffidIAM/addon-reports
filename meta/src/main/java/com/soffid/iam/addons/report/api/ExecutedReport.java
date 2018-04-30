@@ -17,6 +17,7 @@ public class ExecutedReport {
 	Date date;
 	boolean done;
 	boolean error;
+	@Nullable Boolean notify;
 	@Nullable String errorMessage;
 	
 	@Nullable String pdfDocument;
