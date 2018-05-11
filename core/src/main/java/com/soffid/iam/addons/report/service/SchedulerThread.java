@@ -3,7 +3,6 @@ package com.soffid.iam.addons.report.service;
 import java.util.Date;
 
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ApplicationContext;
 
 import com.soffid.iam.addons.report.api.ScheduledReport;
 
@@ -22,7 +21,8 @@ public class SchedulerThread extends Thread {
 
 	private boolean end = false;
 	private ReportSchedulerService reportSchedulerService;
-
+	private ReportService reportService; 
+	
 	private ExecutorThread executorThread;
 
 	public void end() {
@@ -53,8 +53,11 @@ public class SchedulerThread extends Thread {
 						next = sr.getNextExecution();
 				}
 				long millis = next == null ? 120000 : next.getTime() - now.getTime();
-				if (millis > 120000) // 2 minutes 
+				if (millis >= 120000) // 2 minutes 
+				{
+					reportService.purgeExpiredReports();
 					millis = 120000;
+				}
 				synchronized(this)
 				{
 					this.wait (millis);
@@ -85,5 +88,13 @@ public class SchedulerThread extends Thread {
 			schedulerThread  = new SchedulerThread();
 		
 		return schedulerThread;
+	}
+
+	public ReportService getReportService() {
+		return reportService;
+	}
+
+	public void setReportService(ReportService reportService) {
+		this.reportService = reportService;
 	}
 }

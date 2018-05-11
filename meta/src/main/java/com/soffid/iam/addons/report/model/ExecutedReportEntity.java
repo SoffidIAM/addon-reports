@@ -72,4 +72,7 @@ public class ExecutedReportEntity {
 	
 	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r where r.done=:done")
 	Collection<ExecutedReportEntity> findPendingReports (boolean done) { return null; }
+
+	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r where r.date < :date")
+	Collection<ExecutedReportEntity> findExpiredReports (Date date) { return null; }
 }

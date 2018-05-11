@@ -43,9 +43,8 @@ import es.caib.seycon.ng.servei.UsuariService;
 	// Services
 		ReportSchedulerService.class,
 		
-		// DocumentService.class
 		DocumentService.class, ACLService.class,
-		
+
 		UsuariService.class, GrupService.class, AplicacioService.class, ConfiguracioService.class,
 		
 		UsuariEntity.class
@@ -119,4 +118,8 @@ public class ReportService {
 	
 	@Operation(grantees={Admin.class})
 	public void generateDevelopmentEnvironment (OutputStream out) {}
+	
+	@Operation
+	@Description("Process to remove expired reports")
+	public void purgeExpiredReports () {}
 }

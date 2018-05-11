@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.rmi.RemoteException;
+import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import javax.ejb.CreateException;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.type.CustomType;
@@ -72,7 +74,8 @@ import es.caib.seycon.ng.utils.Security;
 
 
 public class ReportServiceImpl extends ReportServiceBase implements ApplicationContextAware, InitializingBean {
-
+	org.apache.commons.logging.Log log = LogFactory.getLog(getClass());
+	
 	private ApplicationContext applicationContext;
 
 	@Override
@@ -586,6 +589,50 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			list = getScheduledReportEntityDao().toScheduledReportList(getScheduledReportEntityDao().findByNameFilter(name));
 		}
 		return list;
+	}
+
+	@Override
+	protected void handlePurgeExpiredReports() throws Exception {
+		String daysToPreserve = System.getProperty("soffid.addon.report.expire");
+		if (daysToPreserve == null)
+		{
+			daysToPreserve = "16000";
+			Configuracio cfg = new Configuracio();
+			cfg.setCodi("soffid.addon.report.expire");
+			cfg.setValor(daysToPreserve);
+			cfg.setDescripcio("Max days to keep generated reports");
+			getConfiguracioService().create(cfg);
+		}
+		if ( ! daysToPreserve.isEmpty())
+		{
+			int days = Integer.parseInt(daysToPreserve.trim());
+			Calendar c = Calendar.getInstance();
+			c.add(Calendar.DAY_OF_YEAR, -days);
+			log.info("Expiring reports since "+DateFormat.getDateInstance().format(c.getTime()));
+			for (ExecutedReportEntity ere : getExecutedReportEntityDao().findExpiredReports( c.getTime()))
+			{
+				log.info("Expiring report #"+ere.getId()+": "+ere.getName());
+				for ( Iterator<ExecutedReportTargetEntity> it = ere.getAcl().iterator();
+						it.hasNext();)
+				{
+					ExecutedReportTargetEntity target = it.next ();
+					target.setReport(null);
+					it.remove();
+				}
+				DocumentService ds = getDocumentService();
+				if (ere.getHtmlDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getHtmlDocument()));
+				if (ere.getXmlDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getXmlDocument()));
+				if (ere.getPdfDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getPdfDocument()));
+				if (ere.getCsvDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getCsvDocument()));
+				if (ere.getXlsDocument() != null)
+					ds.deleteDocument(new DocumentReference(ere.getXlsDocument()));
+				getExecutedReportEntityDao().remove(ere);
+			}
+		}
 	}
 
 }
