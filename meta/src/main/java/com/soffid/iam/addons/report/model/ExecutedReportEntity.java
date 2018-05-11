@@ -47,12 +47,13 @@ public class ExecutedReportEntity {
 	@Column(name="ERE_XLSDOC", length=128)
 	String xlsDocument;
 
-	@Column(name="ERE_NOTIF", defaultValue="false")
+	@Nullable
+	@Column(name="ERE_NOTIFY", defaultValue="false")
 	Boolean notify;
 	
 	@Column(name="ERE_DONE", defaultValue="false")
 	boolean done;
-	
+
 	@Column(name="ERE_ERROR", defaultValue="false")
 	boolean error;
 	
@@ -89,4 +90,6 @@ public class ExecutedReportEntity {
 	@DaoOperation
 	void lock (ExecutedReportEntity entity) {};
 
+	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r where r.date < :date")
+	Collection<ExecutedReportEntity> findExpiredReports (Date date) { return null; }
 }

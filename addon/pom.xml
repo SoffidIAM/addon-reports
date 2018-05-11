@@ -16,7 +16,7 @@
 				<filtering>true</filtering>
 			</resource>
 			<resource>
-				<directory>target/src</directory>
+				<directory>target/src</directory> 
 				<excludes>
 					<exclude>**/*.java</exclude>
 				</excludes>

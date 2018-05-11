@@ -1,10 +1,22 @@
 package com.soffid.iam.addons.report.service;
 
 import java.net.InetAddress;
+import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.logging.LogFactory;
+import org.jfree.util.Log;
+
 import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.doc.service.DocumentService;
+
+import es.caib.seycon.ng.comu.Configuracio;
+import es.caib.seycon.ng.comu.Usuari;
+import es.caib.seycon.ng.exception.InternalErrorException;
+
 import com.soffid.iam.addons.acl.api.AccessControlList;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ParameterValue;
@@ -32,9 +44,14 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 	@Override
 	protected List<ExecutedReport> handleGetPendingReports() throws Exception {
 		ExecutedReportEntityDao dao = getExecutedReportEntityDao();
-		return dao.toExecutedReportList(dao.findPendingReports(false));
+		List<ExecutedReport> list = dao.toExecutedReportList(dao.findPendingReports(false));
+		
+		return list;
 	}
 
+
+	org.apache.commons.logging.Log log = LogFactory.getLog(getClass());
+	
 	@Override
 	protected void handleUpdateReport(ExecutedReport report) throws Exception {
 		ExecutedReportEntity ere = getExecutedReportEntityDao().load(report.getId());
@@ -47,6 +64,34 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		ere.setCsvDocument(report.getCsvDocument());
 		ere.setXlsDocument(report.getXlsDocument());
 		getExecutedReportEntityDao().update(ere);
+		if (ere.isDone() && ere.getNotify() != null && ere.getNotify().booleanValue())
+		{
+			log.info("Notifying report execution by mail");
+			for (ExecutedReportTargetEntity target : ere.getAcl())
+			{
+				String userName = target.getUser().getUserName();
+				log.info("Notifying report to "+userName);
+				String hostName = System.getProperty("AutoSSOURL");
+				if (hostName == null)
+				{
+					hostName = System.getProperty("hostName")+"."+System.getProperty("domainName")+":8080";
+				}
+				getMailService().sendHtmlMailToActors(new String[]{userName}, 
+						ere.getName(), 
+						"<html><body>" //$NON-NLS-1$
+						+ Messages.getString("ReportSchedulerServiceImpl.1") //$NON-NLS-1$
+						+ "<br><br>" //$NON-NLS-1$
+						+ Messages.getString("ReportSchedulerServiceImpl.3") //$NON-NLS-1$
+						+ "<b>"+ere.getName()+"</b>" //$NON-NLS-1$ //$NON-NLS-2$
+								+ Messages.getString("ReportSchedulerServiceImpl.6") //$NON-NLS-1$
+								+ "<a href='http://"+hostName+"/index.zul?target=addon/report/report.zul?id=" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+								+ report.getId()
+								+"'>" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+								+Messages.getString("ReportSchedulerServiceImpl.0") //$NON-NLS-1$
+								+"</a>" //$NON-NLS-1$
+								+"</body></html>"); //$NON-NLS-1$
+			}
+		}
 	}
 
 	@Override
@@ -73,7 +118,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		ere.setDone(false);
 		ere.setError(false);
 		ere.setReport(getReportEntityDao().load(report.getReportId()));
-		
+		ere.setNotify(Boolean.TRUE);
 		for (Long user: targets.getUsers())
 		{
 			ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
