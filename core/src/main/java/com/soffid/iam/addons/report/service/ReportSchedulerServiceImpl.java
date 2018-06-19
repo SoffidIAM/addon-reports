@@ -16,6 +16,7 @@ import com.soffid.iam.doc.service.DocumentService;
 import es.caib.seycon.ng.comu.Configuracio;
 import es.caib.seycon.ng.comu.Usuari;
 import es.caib.seycon.ng.exception.InternalErrorException;
+import es.caib.seycon.ng.utils.Security;
 
 import com.soffid.iam.addons.acl.api.AccessControlList;
 import com.soffid.iam.addons.report.api.ExecutedReport;
@@ -38,7 +39,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 	@Override
 	protected List<ScheduledReport> handleGetScheduledReport() throws Exception {
 		ScheduledReportEntityDao dao = getScheduledReportEntityDao();
-		return dao.toScheduledReportList(dao.loadAll());
+		return dao.toScheduledReportList(dao.findAll());
 	}
 
 	@Override
@@ -99,52 +100,58 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 			throws Exception {
 		AccessControlList acl = new AccessControlList();
 
-		ScheduledReportEntity sre = getScheduledReportEntityDao().load(report.getId());
-		for (ScheduledReportTargetEntity ace: sre.getAcl())
+		ScheduledReportEntity sre = getScheduledReportEntityDao().findById(report.getId());
+		Security.nestedLogin(sre.getTenant().getName(), "ReportScheduler", Security.ALL_PERMISSIONS);
+		try
 		{
-			if (ace.getUser() != null)
-				acl.getUsers().add(ace.getUser().getId());
-			if (ace.getRole() != null)
-				acl.getRoles().add(ace.getRole().getId());
-			if (ace.getGroup() != null)
-				acl.getGroups().add(ace.getGroup().getId());
-		}
-		
-		AccessControlList targets = getACLService().expandACL(acl);
-		
-		ExecutedReportEntity ere = getExecutedReportEntityDao().newExecutedReportEntity();
-		ere.setName(report.getName());
-		ere.setDate(new Date());
-		ere.setDone(false);
-		ere.setError(false);
-		ere.setReport(getReportEntityDao().load(report.getReportId()));
-		ere.setNotify(Boolean.TRUE);
-		for (Long user: targets.getUsers())
-		{
-			ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
+			for (ScheduledReportTargetEntity ace: sre.getAcl())
+			{
+				if (ace.getUser() != null)
+					acl.getUsers().add(ace.getUser().getId());
+				if (ace.getRole() != null)
+					acl.getRoles().add(ace.getRole().getId());
+				if (ace.getGroup() != null)
+					acl.getGroups().add(ace.getGroup().getId());
+			}
 			
-			erte.setUser(getUserEntityDao().load(user));
-			erte.setReport(ere);
-			ere.getAcl().add(erte);
+			AccessControlList targets = getACLService().expandACL(acl);
+			
+			ExecutedReportEntity ere = getExecutedReportEntityDao().newExecutedReportEntity();
+			ere.setName(report.getName());
+			ere.setDate(new Date());
+			ere.setDone(false);
+			ere.setError(false);
+			ere.setReport(getReportEntityDao().load(report.getReportId()));
+			ere.setNotify(Boolean.TRUE);
+			for (Long user: targets.getUsers())
+			{
+				ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
+				
+				erte.setUser(getUserEntityDao().load(user));
+				erte.setReport(ere);
+				ere.getAcl().add(erte);
+			}
+			
+			for (ParameterValue pm: report.getParams())
+			{
+				ParameterValue pv2 = new ParameterValue();
+				pv2.setName(pm.getName());
+				pv2.setType(pm.getType());
+				pv2.setValue(pm.getValue());
+				ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
+				erpe.setReport(ere);
+				ere.getParameters().add(erpe);
+			}
+			
+			getExecutedReportEntityDao().create(ere);
+			
+			sre.setLastExecution(new Date());
+			getScheduledReportEntityDao().update(sre);
+			
+			return getExecutedReportEntityDao().toExecutedReport(ere);
+		} finally {
+			Security.nestedLogoff();
 		}
-		
-		for (ParameterValue pm: report.getParams())
-		{
-			ParameterValue pv2 = new ParameterValue();
-			pv2.setName(pm.getName());
-			pv2.setType(pm.getType());
-			pv2.setValue(pm.getValue());
-			ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
-			erpe.setReport(ere);
-			ere.getParameters().add(erpe);
-		}
-		
-		getExecutedReportEntityDao().create(ere);
-		
-		sre.setLastExecution(new Date());
-		getScheduledReportEntityDao().update(sre);
-		
-		return getExecutedReportEntityDao().toExecutedReport(ere);
 	}
 
 	@Override

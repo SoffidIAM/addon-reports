@@ -8,6 +8,7 @@ import com.soffid.iam.model.TenantEntity;
 import com.soffid.mda.annotation.Column;
 import com.soffid.mda.annotation.DaoFinder;
 import com.soffid.mda.annotation.Depends;
+import com.soffid.mda.annotation.Description;
 import com.soffid.mda.annotation.Entity;
 import com.soffid.mda.annotation.Identifier;
 import com.soffid.mda.annotation.Nullable;
@@ -50,5 +51,17 @@ public class ScheduledReportEntity {
 	Collection<ScheduledReportEntity> findByNameFilter (String name ) {
 		return null;
 	}
+
+	
+	@Description("Finder to find any scheduled report regardless the tenant it belongs")
+	@DaoFinder("select re from com.soffid.iam.addons.report.model.ScheduledReportEntity as re ")
+	Collection<ScheduledReportEntity> findAll ( ) {
+		return null;
+	}
+	
+	@Description("Finder to load a report regardless the tenant it belongs")
+	@DaoFinder("select r from com.soffid.iam.addons.report.model.ScheduledReportEntity as r "
+			+ "where r.id=:id")
+	ScheduledReportEntity findById (Long id) { return null; }
 
 }

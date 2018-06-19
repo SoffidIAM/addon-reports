@@ -83,7 +83,7 @@ public class ReportSchedulerBean {
 		}
 	}
 
-	private ReportSchedulerBean ()
+	public ReportSchedulerBean ()
 	{
 		
 	}

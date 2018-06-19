@@ -10,6 +10,7 @@ import com.soffid.mda.annotation.Column;
 import com.soffid.mda.annotation.DaoFinder;
 import com.soffid.mda.annotation.DaoOperation;
 import com.soffid.mda.annotation.Depends;
+import com.soffid.mda.annotation.Description;
 import com.soffid.mda.annotation.Entity;
 import com.soffid.mda.annotation.Identifier;
 import com.soffid.mda.annotation.Nullable;
@@ -83,6 +84,7 @@ public class ExecutedReportEntity {
 			+ "where r.done=:done")
 	Collection<ExecutedReportEntity> findPendingReports (boolean done) { return null; }
 
+	@Description("Finder to load a report regardless the tenant it belongs")
 	@DaoFinder("select r from com.soffid.iam.addons.report.model.ExecutedReportEntity as r "
 			+ "where r.id=:id")
 	ExecutedReportEntity findById (Long id) { return null; }

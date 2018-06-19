@@ -90,7 +90,7 @@ public class ClusterManagerBean  {
 		{
 			String hostName = Inet4Address.getLocalHost().getHostName();
 			long now = System.currentTimeMillis();
-			long timeout = now - 30000; // 5 minutes ago
+			long timeout = now - 300000; // 5 minutes ago
 			ConfigurationService svc = ServiceLocator.instance().getConfigurationService();
 			Configuration cfg = svc.findParameterByNameAndNetworkName("addon.report.server", null);
 			if (cfg == null)
