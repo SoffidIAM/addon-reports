@@ -49,6 +49,7 @@ public class ReportSchedulerBootServiceImpl extends
 		
 		SchedulerThread schedulerThread = SchedulerThread.getInstance();
 		schedulerThread.setReportSchedulerService(getReportSchedulerService());
+		schedulerThread.setReportService(getReportService());
 		schedulerThread.setExecutorThread(executorThread);
 
 		if (! executorThread.isAlive())

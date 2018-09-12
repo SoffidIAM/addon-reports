@@ -1,13 +1,20 @@
 package com.soffid.iam.addons.report.service;
 
+import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.logging.LogFactory;
 import org.jfree.util.Log;
 
 import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.doc.service.DocumentService;
 
+import es.caib.seycon.ng.comu.Configuracio;
+import es.caib.seycon.ng.comu.Usuari;
+import es.caib.seycon.ng.exception.InternalErrorException;
 import es.caib.seycon.ng.utils.MailUtils;
 
 import com.soffid.iam.addons.acl.api.AccessControlList;
@@ -37,8 +44,11 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 	@Override
 	protected List<ExecutedReport> handleGetPendingReports() throws Exception {
 		ExecutedReportEntityDao dao = getExecutedReportEntityDao();
-		return dao.toExecutedReportList(dao.findPendingReports(false));
+		List<ExecutedReport> list = dao.toExecutedReportList(dao.findPendingReports(false));
+		
+		return list;
 	}
+
 
 	org.apache.commons.logging.Log log = LogFactory.getLog(getClass());
 	
@@ -61,6 +71,11 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 			{
 				String userName = target.getUser().getCodi();
 				log.info("Notifying report to "+userName);
+				String hostName = System.getProperty("AutoSSOURL");
+				if (hostName == null)
+				{
+					hostName = "http://"+System.getProperty("hostName")+"."+System.getProperty("domainName")+":8080";
+				}
 				getMailService().sendHtmlMailToActors(new String[]{userName}, 
 						ere.getName(), 
 						"<html><body>" //$NON-NLS-1$
@@ -69,7 +84,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 						+ Messages.getString("ReportSchedulerServiceImpl.3") //$NON-NLS-1$
 						+ "<b>"+ere.getName()+"</b>" //$NON-NLS-1$ //$NON-NLS-2$
 								+ Messages.getString("ReportSchedulerServiceImpl.6") //$NON-NLS-1$
-								+ "<a href='http://"+System.getProperty("hostName")+"."+System.getProperty("domainName")+":8080/index.zul?target=addon/report/report.zul?id=" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+								+ "<a href='"+hostName+"/index.zul?target=addon/report/report.zul?id=" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 								+ report.getId()
 								+"'>" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 								+Messages.getString("ReportSchedulerServiceImpl.0") //$NON-NLS-1$
