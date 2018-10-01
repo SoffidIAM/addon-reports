@@ -280,7 +280,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			getExecutedReportEntityDao().create(er);
 			
 			try {
-				String jndi = "java:/openejb/Deployment/ReportExecutorBean/com.soffid.iam.addons.report.service.ejb.ReportExecutor";
+				String jndi = "openejb:/local/iam-ear-com.soffid.iam.addons.report.service.ejb.ReportExecutorBeanLocal";
 				ReportExecutor bean =
 						(ReportExecutor) new InitialContext().lookup(jndi);
 				bean.newReportCreated();
