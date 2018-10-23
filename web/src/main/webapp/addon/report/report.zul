@@ -48,5 +48,4 @@
     <include src="grupsllista.zul"/>
 	<include src="rolsllista.zul"/>
 	<include src="aplicacionsllista.zul"/>
-	<iframe height="1" id="downloadWindow" visible="true" width="1"/>
 </zk>

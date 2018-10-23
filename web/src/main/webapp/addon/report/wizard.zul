@@ -367,8 +367,7 @@ es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath
  								report.getName()+".pdf", "pdf", "binary/octet-stream", 
  								new com.soffid.iam.doc.api.DocumentInputStream(svc) );
  						
- 						downloadWindow.setContent(media);
- 						downloadWindow.invalidate();
+ 						Filedownload.save(media);
  						
  	    			}
 
