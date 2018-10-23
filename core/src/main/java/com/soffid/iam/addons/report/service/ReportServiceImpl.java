@@ -53,6 +53,7 @@ import com.soffid.iam.addons.report.model.ExecutedReportTargetEntity;
 import com.soffid.iam.addons.report.model.ReportACLEntity;
 import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ReportEntityDao;
+import com.soffid.iam.addons.report.model.ReportParameterEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutor;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
@@ -237,7 +238,11 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         if (r.getId() == null)
         	getReportEntityDao().create(re);
         else
+        {
         	getReportEntityDao().update(re);
+       		getReportParameterEntityDao().update( re.getParameters());
+       		getReportACLEntityDao().update(re.getAcl());
+        }
         
         return getReportEntityDao().toReport(re);
 	}

@@ -117,9 +117,7 @@
 					svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(doc));
 					org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(
 							name, format, mimeFormat, new com.soffid.iam.doc.api.DocumentInputStream(svc) );
-					
-					downloadWindow.setContent(media);
-					downloadWindow.invalidate();
+					Filedownload.save(media);
 				}
 			}
 		]]></zscript>
