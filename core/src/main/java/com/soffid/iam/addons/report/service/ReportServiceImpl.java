@@ -64,6 +64,7 @@ import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
 import com.soffid.iam.model.UserEntity;
 import com.soffid.iam.model.identity.IdentityGenerator;
+import com.soffid.iam.utils.ConfigurationCache;
 import com.soffid.iam.utils.Security;
 
 import es.caib.seycon.ng.comu.Configuracio;
@@ -627,7 +628,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 
 	@Override
 	protected void handlePurgeExpiredReports() throws Exception {
-		String daysToPreserve = System.getProperty("soffid.addon.report.expire");
+		String daysToPreserve = ConfigurationCache.getProperty("soffid.addon.report.expire");
 		if (daysToPreserve == null)
 		{
 			daysToPreserve = "16000";
