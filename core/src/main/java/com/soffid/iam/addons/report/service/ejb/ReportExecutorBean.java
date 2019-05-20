@@ -56,10 +56,18 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.export.JRCsvExporterParameter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.export.CsvExporterConfiguration;
+import net.sf.jasperreports.export.SimpleCsvExporterConfiguration;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimpleWriterExporterOutput;
+import net.sf.jasperreports.export.SimpleXlsExporterConfiguration;
+import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
 
 @Singleton(name="ReportExecutorBean")
 @Local({ReportExecutor.class})
@@ -265,13 +273,15 @@ public class ReportExecutorBean implements ReportExecutor {
 	        	try {
 		        	documentService.createDocument("text/csv", sr.getName()+".csv", "report");
 		        	out = new DocumentOutputStream(documentService);
-		        	JRCsvExporter exporterCSV = new JRCsvExporter(); 
-		        	exporterCSV.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
-		        	exporterCSV.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
-		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
-		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
-		        	exporterCSV.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
-		        	exporterCSV.exportReport(); 
+		        	JRCsvExporter exporterCSV = new JRCsvExporter();
+		        	SimpleCsvExporterConfiguration c = new SimpleCsvExporterConfiguration();
+		        	c.setFieldDelimiter(";");
+		        	c.setFieldEnclosure("\"");
+		        	c.setForceFieldEnclosure(true);
+		        	exporterCSV.setConfiguration(c);
+		        	exporterCSV.setExporterInput( new SimpleExporterInput(jasperPrint)  );
+		        	exporterCSV.setExporterOutput(new SimpleWriterExporterOutput(out));
+		        	exporterCSV.exportReport();
 		        	out.close ();
 		        	sr.setCsvDocument(documentService.getReference().toString());
 		        	documentService.closeDocument();
@@ -283,14 +293,23 @@ public class ReportExecutorBean implements ReportExecutor {
 		        	documentService.createDocument("application/xls", sr.getName()+".xls", "report");
 		        	out = new DocumentOutputStream(documentService);
 		        	JRXlsExporter exporterXls = new JRXlsExporter(); 
-		        	exporterXls.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint); 
-		        	exporterXls.setParameter(JRXlsExporterParameter.OUTPUT_STREAM, out); 
-		        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_COLUMNS, true); 
-		        	exporterXls.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, true); 
-		        	exporterXls.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, true); 
-		        	exporterXls.setParameter(JRXlsExporterParameter.MAXIMUM_ROWS_PER_SHEET, 65000); 
-		        	exporterXls.setParameter(JRXlsExporterParameter.IGNORE_PAGE_MARGINS, true); 
+		        	SimpleXlsExporterConfiguration ec = new SimpleXlsExporterConfiguration();
+		        	ec.setMetadataAuthor("Soffid");
+		        	ec.setMetadataTitle(sr.getName());
+		        	exporterXls.setConfiguration(ec);
+		        	
+		        	SimpleXlsReportConfiguration rc = new SimpleXlsReportConfiguration();
+		        	rc.setRemoveEmptySpaceBetweenColumns(true);
+		        	rc.setRemoveEmptySpaceBetweenRows(true);
+		        	rc.setWhitePageBackground(true);
+		        	rc.setMaxRowsPerSheet(65000);
+		        	rc.setIgnorePageMargins(true);
+		        	exporterXls.setConfiguration(rc);
+
+		        	exporterXls.setExporterInput( new SimpleExporterInput(jasperPrint)  );
+		        	exporterXls.setExporterOutput(new SimpleOutputStreamExporterOutput(out));
 		        	exporterXls.exportReport(); 
+		        	
 		        	out.close ();
 		        	sr.setXlsDocument(documentService.getReference().toString());
 		        	documentService.closeDocument();
