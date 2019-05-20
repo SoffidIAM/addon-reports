@@ -1,6 +1,7 @@
 package com.soffid.iam.addons.report.service;
 
 import java.net.InetAddress;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -25,9 +26,9 @@ public class JRBshExecuterFactory implements JRQueryExecuterFactory {
 		
 		try {
 			Interpreter interp = new Interpreter();
-			interp.eval("import es.caib.seycon.ng.comu.*;");
-			interp.eval("import es.caib.seycon.ng.servei.*;");
-			interp.eval("import es.caib.seycon.ng.ServiceLocator;");
+			interp.eval("import com.soffid.iam.api.*;");
+			interp.eval("import com.soffid.iam.service.*;");
+			interp.eval("serviceLocator = com.soffid.iam.ServiceLocator.instance();");
 			try {
 				String hostName = InetAddress.getLocalHost().getHostName();
 				interp.set("serverName", hostName);
