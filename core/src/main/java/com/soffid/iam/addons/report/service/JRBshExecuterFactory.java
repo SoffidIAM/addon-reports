@@ -26,6 +26,9 @@ public class JRBshExecuterFactory implements JRQueryExecuterFactory {
 		
 		try {
 			Interpreter interp = new Interpreter();
+			interp.eval("import es.caib.seycon.ng.comu.*;");
+			interp.eval("import es.caib.seycon.ng.servei.*;");
+			interp.eval("import es.caib.seycon.ng.ServiceLocator;");			
 			interp.eval("import com.soffid.iam.api.*;");
 			interp.eval("import com.soffid.iam.service.*;");
 			interp.eval("serviceLocator = com.soffid.iam.ServiceLocator.instance();");
