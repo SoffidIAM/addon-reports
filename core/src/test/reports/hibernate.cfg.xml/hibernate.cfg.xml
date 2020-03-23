@@ -1,0 +1,159 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!DOCTYPE hibernate-configuration PUBLIC
+          "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+          "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+  <session-factory>
+
+    <!-- jdbc connection properties -->
+    <property name="connection.driver_class">org.mariadb.jdbc.Driver</property>
+    <property name="connection.url">jdbc:mysql://localhost/soffid</property>
+    <property name="connection.username">soffid</property>
+    <property name="connection.password">geheim01</property>
+    <property name="dialect">org.hibernate.dialect.MySQLInnoDBDialect</property>
+    <property name="connection.pool_size">1</property>
+
+        <property name="hibernate.jdbc.batch_size">0</property>
+
+    <!-- property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>  -->
+    <property name="hibernate.cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+        <property name="hibernate.cache.use_second_level_cache">false</property>
+        <property name="hibernate.cache.use_query_cache">false</property>
+
+
+    <!-- ################################### -->
+    <!-- # common settings                 # -->
+    <!-- ################################### -->
+
+    <!-- Automatic schema creation (begin) 
+         Automatic schema creation (end) -->
+
+    <!-- Simple memory-only cache -->
+    <property name="hibernate.cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
+
+    <!-- logging properties -->
+    <property name="hibernate.format_sql">true</property>
+    <property name="hibernate.use_sql_comments">true</property>
+   <mapping resource="es/caib/seycon/ng/model/TasqueEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/Saml2SSOProfileEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/Saml2AttributeQueryProfileEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/Saml1AttributeQueryProfileEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/SamlProfileEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ServeiEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ReportACLEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ServerPluginEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/ServiceProviderEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/FederationMemberEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ReplicaDatabaseEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ScheduledReportTargetEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AttributeMappingEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DominiUsuariEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DominiContrasenyaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ScContar.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/RolAssociacioRolEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ArbrePuntEntradaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ObjectMappingPropertyEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/UsuariWFProcessEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/TipusUsuariDispatcherEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/Saml2ArtifactResolutionProfileEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/Saml1ArtifactResolutionProfileEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/UsuariEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/UsuariSEUEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/GrupImpressoraEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/BlobConfigurationEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ScTarget.hbm.xml"/>
+   <mapping resource="com/soffid/iam/doc/model/FileSystem.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/MaquinaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ServerPluginModuleEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/SoDRuleEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/SoDRoleEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/LlistaCorreuUsuariEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AuditoriaEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/model/RuleAssignedRoleEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ControlAccessEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/GrupDispatcherEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/authoritative/model/AuthoritativeChangeEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/reconcile/model/ReconcileAssignmentEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/doc/model/DocSign.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DefaultAttributeMappingEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/ServiceProviderVirtualIdentityProviderEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/IconaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DefaultObjectMappingPropertyEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/AttributePolicyEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/TipusUnitatOrganitzativaEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/reconcile/model/ReconcileAccountEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DispatcherEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/doc/model/DocumentEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ConfiguracioEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/AttributeConditionEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/PolicyConditionEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DominiAplicacioEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ReportParameterEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/SessioEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DadaUsuariEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ScheduledReportEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DominiCorreuEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/TipusDadaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AccountPasswordEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/model/RuleEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/UsuariImpressoraEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/PolicyEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/XarxaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AliasMaquinaEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/model/ScheduledTaskEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/RolsGrupEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/SecretEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/NotificacioEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/SsoEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/TipusUsuariEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/RegistreAccesEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ObjectMappingEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/TipusExecucioPuntEntradaEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/EntityGroupEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AccountAccessEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/TaskLogEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AutoritzacioPUEUsuariEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ServerEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ExecutedReportEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/PuntEntradaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ImpressoraEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ScheduledReportParameterEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AutoritzacioRolEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AutoritzacioAccesHostComAdministradorEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ParaulaProhibidaPoliticaContrasenyaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AccountEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AutoritzacioPUERolEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AutoritzacioPUEGrupEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/IdentityProviderEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/VirtualIdentityProviderEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ReportEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/model/ScheduledTaskHandlerEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ContrasenyaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ValorDominiAplicacioEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ExecutedReportParameterEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/GrupEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/AttributeEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/RenovacioEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/federation/model/Saml2ECPProfileEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/DefaultObjectMappingEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AplicacioEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/model/AttributeTranslationEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ParaulesProhibidesEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/LlistaCorreuEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/reconcile/model/ReconcileRoleEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/RolAccountEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/XarxaACEntity.hbm.xml"/>
+   <mapping resource="com/soffid/iam/addons/report/model/ExecutedReportTargetEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/UserAccountEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/OsTypeEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/RelacioLlistaCorreuEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/AgentDescriptorEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/ExecucioPuntEntradaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/UsuariGrupEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/CorreuExternEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/PoliticaContrasenyaEntity.hbm.xml"/>
+   <mapping resource="es/caib/seycon/ng/model/RolEntity.hbm.xml"/>
+</session-factory>
+</hibernate-configuration>

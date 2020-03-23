@@ -35,6 +35,11 @@ public class ScheduledReportEntity {
 	@Column(name="SRE_CRON")
 	String cronExpression;
 
+	@Description("User that created the schedule")
+	@Column(name="SRE_USER")
+	@Nullable
+	String user;
+
 	@Nullable
 	@Column(name="SRE_LASEXE")
 	Date lastExecution;

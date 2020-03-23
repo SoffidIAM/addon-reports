@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportAD" language="groovy" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f0e52eda-7f2b-4896-a06b-b548fdad4f73">
+	<property name="template.type" value="columnar"/>
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="311"/>
+	<style name="Title" forecolor="#000000" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<subDataset name="summary" uuid="bbc82320-d01c-4ca3-9495-10ed7dd302e7">
+		<queryString language="hql">
+			<![CDATA[select 'Number of users' as title,
+(
+  select count (*) from es.caib.seycon.ng.model.UsuariEntity  as user
+  where  user.actiu =  'S'
+) as value
+from es.caib.seycon.ng.model.ConfiguracioEntity as config
+where config.codi = 'iam-core.version']]>
+		</queryString>
+		<field name="title" class="java.lang.String"/>
+		<field name="value" class="java.lang.Long"/>
+	</subDataset>
+	<subDataset name="Domains" uuid="a6b4b900-c6a3-4a22-9581-efb0557d2c94">
+		<queryString language="hql">
+			<![CDATA[select dis.description as domain,
+       count(acc.name) as accounts
+from   es.caib.seycon.ng.model.DispatcherEntity as dis
+join   dis.accounts as acc
+where dis.description is not null
+group by dis.description]]>
+		</queryString>
+		<field name="domain" class="java.lang.String"/>
+		<field name="accounts" class="java.lang.Long"/>
+	</subDataset>
+	<queryString language="hql">
+		<![CDATA[select acc.name as name,
+       acc.description as description,
+       gru.codi as uo,
+       dis.codi as domain
+from   es.caib.seycon.ng.model.AccountEntity as acc
+join   acc.dispatcher as dis
+left join acc.users as users
+left join users.user as user
+left join user.grupPrimari as gru
+order by 1,4]]>
+	</queryString>
+	<field name="name" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="uo" class="java.lang.String"/>
+	<field name="domain" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="132" splitType="Stretch">
+			<staticText>
+				<reportElement style="Title" x="58" y="10" width="435" height="93" uuid="d6083abd-2219-472f-a323-53e606fe02ae"/>
+				<textElement>
+					<font size="80" isBold="false"/>
+				</textElement>
+				<text><![CDATA[AD summary]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="SubTitle" x="336" y="103" width="217" height="29" uuid="7cbb8629-3a3d-477d-8c7d-6bd09f2ccdfb"/>
+				<textElement>
+					<font size="22" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="500" splitType="Stretch">
+			<printWhenExpression><![CDATA[new Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="24" forecolor="#B89F7D" backcolor="#9DB1B8" uuid="bb44bfc4-4198-4b75-b826-9876971ee185"/>
+			</frame>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="SubTitle" isPrintRepeatedValues="false" x="0" y="0" width="479" height="23" forecolor="#000000" uuid="51d524df-e108-4cc1-8d3a-63d7bc3def49"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[AD high level summary]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="307" y="41" width="260" height="18" uuid="49c6e268-91ff-47a3-898d-fe509cb65567"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$$Result_Number_Objects]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="68" y="73" width="183" height="20" forecolor="#000000" uuid="823f7465-6600-4082-905b-a8dbd2bd4e7c"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Number of Security Principals]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="68" y="103" width="183" height="20" forecolor="#000000" uuid="4b9a3414-b308-4a42-b52b-94801f3737f5"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Number of Resources]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="307" y="75" width="260" height="18" uuid="7916e544-0c05-45b2-bb0e-6965e8379218"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$$Result_Number_SecPrincipals]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="26" y="140" width="225" height="20" forecolor="#000000" uuid="2ac24036-2eb9-4a95-8513-bae84e4bc180"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Domains]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="307" y="105" width="260" height="18" uuid="afaec6e3-3fef-4494-b79f-074e1a44142b"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$$Result_Number_Resources]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="307" y="142" width="260" height="18" uuid="074ef99b-4fdc-4212-aa05-7e7897f4ee8c"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$$Result_Number_of_Domains]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="26" y="180" width="225" height="20" forecolor="#000000" uuid="ff941e77-06c0-4f64-b04a-86752dda2397"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Organizational Units]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="307" y="182" width="260" height="18" uuid="a2102e77-dbc7-4203-a951-3d7305564ae1"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$$Result_Number_of_OUs]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="26" y="223" width="225" height="20" forecolor="#000000" uuid="ba889d65-2ae5-45e8-bb3d-0baf1ce9d55e"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Accounts]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="307" y="225" width="260" height="18" uuid="eed768df-5349-4c0b-a4d0-88d627b88731"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$$Result_Number_of_Accounts]]></textFieldExpression>
+			</textField>
+			<pieChart>
+				<chart>
+					<reportElement x="108" y="302" width="300" height="155" uuid="7d3d8d8b-f19c-4376-88ea-ef221349d3ae"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<pieDataset>
+					<dataset>
+						<datasetRun subDataset="Domains" uuid="71e64112-5f8d-4679-ac52-0ece82df83c6"/>
+					</dataset>
+					<keyExpression><![CDATA[$F{domain}]]></keyExpression>
+					<valueExpression><![CDATA[$F{accounts}]]></valueExpression>
+					<labelExpression><![CDATA[$F{domain}]]></labelExpression>
+				</pieDataset>
+				<piePlot>
+					<plot/>
+					<itemLabel/>
+				</piePlot>
+			</pieChart>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="26" y="41" width="225" height="20" forecolor="#000000" uuid="771faa73-b37c-473c-95cd-8c495f2efcbd"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Objects]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="39" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="SubTitle" isPrintRepeatedValues="false" x="2" y="0" width="479" height="23" forecolor="#000000" uuid="ad77ec0a-2fca-4ff6-be8c-ea2f048aea19"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[AD accounts List]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="26" y="19" width="225" height="20" forecolor="#000000" uuid="666fdbbd-7e4c-49c8-9a90-3be75a3b6a7b"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Account Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="131" y="19" width="225" height="20" forecolor="#000000" uuid="a447db2c-711c-4077-919b-3af20f3d438c"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Account CN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="229" y="19" width="225" height="20" forecolor="#000000" uuid="ec429234-c586-45ad-9e60-71b82896cec6"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Account OU]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="330" y="19" width="225" height="20" forecolor="#000000" uuid="96f5103e-5257-49d7-8770-01c09a3a1a20"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Account Domain]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="25">
+			<textField>
+				<reportElement x="28" y="4" width="100" height="20" uuid="6afe1dc4-aa41-4ec1-8875-8109e44b9d30"/>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="133" y="3" width="100" height="20" uuid="7dc7f99a-a4f4-4daf-932c-a5fdfbf3041a"/>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="233" y="2" width="100" height="20" uuid="4a107ff7-957c-4c98-af4d-b7b4c64720e5"/>
+				<textFieldExpression><![CDATA[$F{uo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="334" y="2" width="100" height="20" uuid="40be432f-0519-4a08-a73a-3a32329f562e"/>
+				<textFieldExpression><![CDATA[$F{domain}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="2" y="0" width="555" height="13" forecolor="#D0B48E" backcolor="#9DB1B8" uuid="d94dcb94-03dd-4b4a-95cb-93927ed87a29"/>
+				<textField evaluationTime="Report">
+					<reportElement style="Column header" x="423" y="1" width="36" height="12" forecolor="#FFFFFF" uuid="2001b848-914f-46ab-b638-e0a2f79ed667"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+				<textField pattern="EEEEE dd MMMMM yyyy">
+					<reportElement style="Column header" x="2" y="0" width="197" height="13" forecolor="#FFFFFF" uuid="c04b012f-edf6-44ab-91e4-981025d695f7"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="Column header" x="475" y="1" width="40" height="12" forecolor="#FFFFFF" uuid="ebd6014f-3a19-4d42-8a0a-b930eaa39c17"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

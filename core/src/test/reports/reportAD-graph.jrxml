@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportAD-graph" language="groovy" pageWidth="612" pageHeight="792" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="2207776c-7adf-4a26-b07e-176c93403f02">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString language="hql">
+		<![CDATA[select dis.description as domain,
+       count(acc.name) + 0.0 as accounts
+from   es.caib.seycon.ng.model.DispatcherEntity as dis
+join   dis.accounts as acc
+where dis.description is not null and dis.description != ''
+and dis.url is not null
+group by dis.description]]>
+	</queryString>
+	<field name="domain" class="java.lang.String"/>
+	<field name="accounts" class="java.lang.Long"/>
+	<group name="Total">
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band height="169">
+				<pieChart>
+					<chart isShowLegend="false" evaluationTime="Band" renderType="image">
+						<reportElement isPrintRepeatedValues="false" x="0" y="0" width="572" height="166" isPrintInFirstWholeBand="true" uuid="5d8119d6-759e-4238-8fb6-c7fc740d7c9c"/>
+						<chartTitle/>
+						<chartSubtitle/>
+						<chartLegend position="Right"/>
+					</chart>
+					<pieDataset>
+						<dataset resetType="Group" resetGroup="Total"/>
+						<keyExpression><![CDATA[$F{domain}]]></keyExpression>
+						<valueExpression><![CDATA[$F{accounts}]]></valueExpression>
+					</pieDataset>
+					<piePlot isShowLabels="true" isCircular="true">
+						<plot/>
+						<itemLabel/>
+					</piePlot>
+				</pieChart>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="22" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="23" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="100" height="20" uuid="eb4a89a3-d097-4555-bc43-8872139c0004"/>
+				<text><![CDATA[Domain]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="272" y="0" width="100" height="20" uuid="0ff953a3-49e9-44a1-a910-803639e269f3"/>
+				<text><![CDATA[Accounts]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="20" width="572" height="1" uuid="bc8dd220-a11b-49de-9f1d-f28a4ebc3e93"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="21" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="100" height="20" uuid="44cdda4f-d57f-4f24-8962-1cf8150221e4"/>
+				<textFieldExpression><![CDATA[$F{domain}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="272" y="0" width="100" height="20" uuid="e02b5b5e-58c7-42ff-bee9-68e74c999e1b"/>
+				<textFieldExpression><![CDATA[$F{accounts}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="5" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="2" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

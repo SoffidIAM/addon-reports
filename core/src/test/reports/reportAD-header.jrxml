@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportAD-header" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f0e52eda-7f2b-4896-a06b-b548fdad4f73">
+	<property name="template.type" value="columnar"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" forecolor="#000000" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<queryString language="hql">
+		<![CDATA[select (
+  select count(u.codi)
+  from   es.caib.seycon.ng.model.UsuariEntity as u
+  where  u.actiu='S'
+) as users ,(
+  select count(a.name)
+  from   es.caib.seycon.ng.model.AccountEntity as a
+  where  a.disabled = 0 and a.type != 'U'
+) as resources,(
+  select count(dis.codi)
+  from   es.caib.seycon.ng.model.DispatcherEntity as dis
+) as domains, (
+  select count(gru.codi)
+  from   es.caib.seycon.ng.model.GrupEntity as gru
+) as ous, (
+  select count(a.name)
+  from   es.caib.seycon.ng.model.AccountEntity as a
+  where  a.disabled = 0 and a.type != 'U'
+) as accounts
+from  es.caib.seycon.ng.model.ConfiguracioEntity as uu
+where uu.codi='component.iam-core.version']]>
+	</queryString>
+	<field name="users" class="java.lang.Long"/>
+	<field name="resources" class="java.lang.Long"/>
+	<field name="domains" class="java.lang.Long"/>
+	<field name="ous" class="java.lang.Long"/>
+	<field name="accounts" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="2" splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="217">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="293" y="11" width="260" height="18" uuid="49c6e268-91ff-47a3-898d-fe509cb65567"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{resources}+$F{resources}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="54" y="43" width="183" height="20" forecolor="#000000" uuid="823f7465-6600-4082-905b-a8dbd2bd4e7c"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Number of Security Principals]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="54" y="73" width="183" height="20" forecolor="#000000" uuid="4b9a3414-b308-4a42-b52b-94801f3737f5"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Number of Resources]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="293" y="45" width="260" height="18" uuid="7916e544-0c05-45b2-bb0e-6965e8379218"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{users}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="12" y="110" width="225" height="20" forecolor="#000000" uuid="2ac24036-2eb9-4a95-8513-bae84e4bc180"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Domains]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="293" y="75" width="260" height="18" uuid="afaec6e3-3fef-4494-b79f-074e1a44142b"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{resources}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="293" y="112" width="260" height="18" uuid="074ef99b-4fdc-4212-aa05-7e7897f4ee8c"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{domains}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="12" y="150" width="225" height="20" forecolor="#000000" uuid="ff941e77-06c0-4f64-b04a-86752dda2397"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Organizational Units]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="293" y="152" width="260" height="18" uuid="a2102e77-dbc7-4203-a951-3d7305564ae1"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ous}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="12" y="193" width="225" height="20" forecolor="#000000" uuid="ba889d65-2ae5-45e8-bb3d-0baf1ce9d55e"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Accounts]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" positionType="Float" x="293" y="195" width="260" height="18" uuid="eed768df-5349-4c0b-a4d0-88d627b88731"/>
+				<textElement>
+					<font size="14" isBold="true" pdfFontName="Times-Bold"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{accounts}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Column header" positionType="Float" x="12" y="11" width="225" height="20" forecolor="#000000" uuid="771faa73-b37c-473c-95cd-8c495f2efcbd"/>
+				<textElement>
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Total number of Objects]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="16"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch">
+			<elementGroup/>
+		</band>
+	</summary>
+</jasperReport>

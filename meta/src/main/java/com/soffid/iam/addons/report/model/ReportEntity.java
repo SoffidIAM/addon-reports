@@ -3,6 +3,7 @@ package com.soffid.iam.addons.report.model;
 import java.util.Collection;
 
 import com.soffid.iam.addons.report.api.Report;
+import com.soffid.iam.model.TenantEntity;
 import com.soffid.mda.annotation.Column;
 import com.soffid.mda.annotation.DaoFinder;
 import com.soffid.mda.annotation.Depends;
@@ -31,6 +32,9 @@ public class ReportEntity {
 	@Column(name="REP_DOCID", length=128)
 	String docId;
 	
+	@Column(name="REP_TEN_ID", length=128)
+	TenantEntity tenant;
+	
 	@ForeignKey(foreignColumn="RAC_REP_ID")
 	Collection<ReportACLEntity> acl;
 
@@ -39,7 +43,7 @@ public class ReportEntity {
 	
 	//////////            Finders
 	
-	@DaoFinder("select re from com.soffid.iam.addons.report.model.ReportEntity as re where re.name like :name")
+	@DaoFinder("select re from com.soffid.iam.addons.report.model.ReportEntity as re where re.name like :name and re.tenant.id=:tenantId")
 	Collection<ReportEntity> findByNameFilter (String name ) {
 		return null;
 	}
@@ -50,7 +54,7 @@ public class ReportEntity {
 	}
 }
 
-@Index(columns={"REP_NAME"}, entity=ReportEntity.class, name="SCR_REPORT_NAME_NDX", unique=true)
+@Index(columns={"REP_TEN_ID", "REP_NAME"}, entity=ReportEntity.class, name="SCR_REPORT_NAME_NDX", unique=true)
 class ReportEntityNameIndex
 {
 	

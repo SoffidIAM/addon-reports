@@ -6,7 +6,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import bsh.EvalError;
 import bsh.Interpreter;
+import bsh.ParseException;
+import bsh.TargetError;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRValueParameter;
@@ -15,7 +21,8 @@ import net.sf.jasperreports.engine.query.JRQueryExecuter;
 import net.sf.jasperreports.engine.query.JRQueryExecuterFactory;
 
 public class JRBshExecuterFactory implements JRQueryExecuterFactory {
-
+	Log log = LogFactory.getLog(getClass());
+	
 	public Object[] getBuiltinParameters() {
 		return null;
 	}
@@ -46,7 +53,29 @@ public class JRBshExecuterFactory implements JRQueryExecuterFactory {
 			Collection<Object> coll = result instanceof Collection ? (Collection<Object>) result
 					: Collections.singleton(result);
 			return new JRBshExecuter(coll);
+		} catch (ParseException ex) {
+			log.info("ERROR EXECUTING SCRIPT");
+			log.info(dataset.getQuery().getText());
+			log.info("======================");
+			log.info("BSH Parse error", ex);
+			throw new JRException("Error executing bsh script", ex);
+		} catch (TargetError ex) {
+			log.info("ERROR EXECUTING SCRIPT");
+			log.info(dataset.getQuery().getText());
+			log.info("======================");
+			log.info("BSH Target error", ex.getTarget());
+			throw new JRException("Error executing bsh script", ex.getTarget());
+		} catch (EvalError ex) {
+			log.info("ERROR EXECUTING SCRIPT");
+			log.info(dataset.getQuery().getText());
+			log.info("======================");
+			log.info("BSH Target error", ex);
+			throw new JRException("Error executing bsh script", ex);
 		} catch (Exception e) {
+			log.info("ERROR EXECUTING SCRIPT");
+			log.info(dataset.getQuery().getText());
+			log.info("======================");
+			log.info("Unexpected error", e);
 			throw new JRException("Error executing bsh script", e);
 		}
 	}

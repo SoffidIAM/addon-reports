@@ -225,6 +225,8 @@ public class ReportExecutorBean implements ReportExecutor {
 			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.1", "pageHeader");
 			v.put("net.sf.jasperreports.export.xls.exclude.origin.band.2", "pageFooter");
 			v.put("net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1", "columnHeader");
+			if (sr.getUser() != null)
+				v.put("soffid.user", sr.getUser());
 			
 			// preparamos para imprimir
 			JasperPrint jasperPrint;

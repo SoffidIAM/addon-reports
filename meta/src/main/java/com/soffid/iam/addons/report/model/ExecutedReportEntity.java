@@ -71,6 +71,11 @@ public class ExecutedReportEntity {
 	@Column(name="ERE_TEN_ID")
 	TenantEntity tenant;
 	
+	@Description("User that created the schedule")
+	@Nullable
+	@Column(name="ERE_USER")
+	String user;
+
 	@Column(name="ERE_LOCK")
 	@Nullable
 	String lockedby;

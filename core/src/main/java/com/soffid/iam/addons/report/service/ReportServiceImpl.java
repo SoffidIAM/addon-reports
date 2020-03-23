@@ -271,6 +271,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			er.setDone(false);
 			er.setError(false);
 			er.setName(schedule.getName());
+			if (myself != null)
+				er.setUser(myself.getUserName());
 			ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
 			erte.setReport(er);
 			erte.setUser(myself);
@@ -405,6 +407,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		schedule.setLastExecution( null );
 		schedule.setCreationDate(new Date());
 		ScheduledReportEntity sre = getScheduledReportEntityDao().scheduledReportToEntity(schedule);
+		sre.setUser(Security.getCurrentUser());
 		getScheduledReportEntityDao().create(sre);
 		return getScheduledReportEntityDao().toScheduledReport(sre);
 	}

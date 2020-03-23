@@ -18,6 +18,7 @@ public class ExecutedReport {
 	boolean done;
 	boolean error;
 	@Nullable Boolean notify;
+	@Nullable String user;
 	@Nullable String errorMessage;
 	
 	@Nullable String pdfDocument;

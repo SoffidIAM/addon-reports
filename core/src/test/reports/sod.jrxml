@@ -35,7 +35,7 @@
 	<queryString language="bsh">
 		<![CDATA[import es.caib.seycon.ng.utils.Security;
 import es.caib.seycon.ng.ServiceLocator;
-import es.caib.secyon.comu.*;
+import es.caib.seycon.ng.comu.*;
 import java.util.Collection;
 
 result = new java.util.LinkedList();
@@ -76,7 +76,7 @@ Collection intersect(Collection intersection,
 	return intersection;
 }
 
-void generateForRisk ( String app, String type, SoDRisk sodLevel, List result)
+void generateForRisk ( String app, String type, es.caib.seycon.ng.comu.SoDRisk sodLevel, List result)
 {
 	Collection apps;
 	if (app != null && app.length() > 0)
@@ -84,9 +84,9 @@ void generateForRisk ( String app, String type, SoDRisk sodLevel, List result)
 	else
 		apps = appService.findAplicacioByCriteri("%", null, null, null, null, null, null, null);
 
-	for (Aplicacio app: apps)
+	for (es.caib.seycon.ng.comu.Aplicacio app: apps)
 	{
-		for (SoDRule rule: sodService.findRuleByApplication(app.getId()))
+		for (es.caib.seycon.ng.comu.SoDRule rule: sodService.findRuleByApplication(app.getId()))
 		{
 			if (rule.getRisk().equals ( sodLevel))
 			{
@@ -94,7 +94,7 @@ void generateForRisk ( String app, String type, SoDRisk sodLevel, List result)
 
 				Collection intersection = null;
 				String roleBuffer = "";
-				for (SoDRole sodRole: sodService.findRolesByRule(rule.getId()))
+				for (es.caib.seycon.ng.comu.SoDRole sodRole: sodService.findRolesByRule(rule.getId()))
 				{
 					if (numRoles > 0) roleBuffer = roleBuffer + ", ";
  					roleBuffer = roleBuffer +  sodRole.getRole().getNom()+ "@" + sodRole.getRole().getBaseDeDades()	;
@@ -103,7 +103,7 @@ void generateForRisk ( String app, String type, SoDRisk sodLevel, List result)
 				}
 				if (intersection != null)
 				{
-					for (RolGrant grant: intersection)
+					for (es.caib.seycon.ng.comu.RolGrant grant: intersection)
 					{
 						row = new java.util.HashMap ();
 						row.put("rule", rule);
@@ -126,7 +126,7 @@ void generateForRisk ( String app, String type, SoDRisk sodLevel, List result)
 						else
 						{
 							try {
-								Account account = accountService.findAccount(grant.getOwnerAccountName(), grant.getOwnerDispatcher());
+								es.caib.seycon.ng.comu.Account account = accountService.findAccount(grant.getOwnerAccountName(), grant.getOwnerDispatcher());
 								if (account != null)
 								{
 									row.put ("userName", account.getName());
@@ -155,13 +155,13 @@ Security.nestedLogin("SoDReport", new String[] {
 try
 {
 	if (all || (forbiddenRisk != null && forbiddenRisk.booleanValue()))
-		generateForRisk (app, "Forbidden", SoDRisk.SOD_FORBIDDEN, result);
+		generateForRisk (app, "Forbidden", es.caib.seycon.ng.comu.SoDRisk.SOD_FORBIDDEN, result);
 	if (all || (highRisk != null && highRisk.booleanValue()))
-		generateForRisk (app, "High", SoDRisk.SOD_HIGH, result);
+		generateForRisk (app, "High", es.caib.seycon.ng.comu.SoDRisk.SOD_HIGH, result);
 	if (all || (lowRisk != null && lowRisk.booleanValue()))
-		generateForRisk (app, "Low", SoDRisk.SOD_LOW, result);
+		generateForRisk (app, "Low", es.caib.seycon.ng.comu.SoDRisk.SOD_LOW, result);
 	if (all)
-		generateForRisk (app, "N/A", SoDRisk.SOD_NA, result);
+		generateForRisk (app, "N/A", es.caib.seycon.ng.comu.SoDRisk.SOD_NA, result);
 }
 finally
 {
