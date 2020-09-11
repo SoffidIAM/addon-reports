@@ -104,6 +104,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 		Security.nestedLogin(sre.getTenant().getName(), "ReportScheduler", Security.ALL_PERMISSIONS);
 		try
 		{
+			log.info("Starting report "+sre.getId()+": "+sre.getName());
 			for (ScheduledReportTargetEntity ace: sre.getAcl())
 			{
 				if (ace.getUser() != null)
@@ -172,16 +173,9 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 	protected ExecutedReport handleLockToStart(ExecutedReport report) throws Exception {
 		ExecutedReportEntityDao dao = getExecutedReportEntityDao();
 		ExecutedReportEntity re = dao.findById(report.getId());
-		dao.lock(re);
+//		dao.lock(re);
 		String hostName = InetAddress.getLocalHost().getHostName();
-		if (re.getLockedby() == null || re.getLockedby().equals(hostName))
-		{
-			re.setLockedby(hostName);
-			dao.update(re);
-			return dao.toExecutedReport(re);			
-		}
-		else
-			return null;
+		return dao.toExecutedReport(re);			
 	}
 
 }

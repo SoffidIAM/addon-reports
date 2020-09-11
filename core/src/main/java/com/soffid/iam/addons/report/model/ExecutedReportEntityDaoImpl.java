@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.LockMode;
 
 import com.soffid.iam.addons.report.api.ExecutedReport;
@@ -19,7 +21,7 @@ import com.soffid.iam.addons.report.api.ParameterValue;
  */
 public class ExecutedReportEntityDaoImpl extends ExecutedReportEntityDaoBase
 {
-
+	Log log = LogFactory.getLog(getClass());
 	@Override
 	public void toExecutedReport(ExecutedReportEntity source,
 			ExecutedReport target) {
@@ -78,6 +80,17 @@ public class ExecutedReportEntityDaoImpl extends ExecutedReportEntityDaoBase
 	@Override
 	protected void handleLock(ExecutedReportEntity entity) throws Exception {
 		getSession().lock(entity, LockMode.UPGRADE);
+	}
+
+	
+	@Override
+	public void update(ExecutedReportEntity entity) {
+		super.update(entity);
+	}
+
+	@Override
+	public void remove(ExecutedReportEntity entity) {
+		super.remove(entity);
 	}
 	
 }

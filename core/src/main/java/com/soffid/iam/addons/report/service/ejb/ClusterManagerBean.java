@@ -57,6 +57,7 @@ public class ClusterManagerBean  {
 						split[0].equals(hostName) ||
 						Long.parseLong(split[1]) < timeout)
 				{
+					log.warn("Setting reports server: "+hostName);
 					cfg.setValue(hostName+" "+now);
 					svc.update(cfg);
 				}

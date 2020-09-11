@@ -137,14 +137,17 @@ public class Test extends AbstractHibernateTest {
 	private void downloadDocument(String fileName, String docId) throws IllegalArgumentException, InternalErrorException, IOException, DocumentBeanException {
 		FileOutputStream out = new FileOutputStream (fileName);
 		DocumentService docSvc = (DocumentService) context.getBean(DocumentService.SERVICE_NAME);
-		docSvc.openDocument(new DocumentReference(docId));
-		docSvc.openDownloadTransfer();
-		byte [] b;
-		while ( (b = docSvc.nextDownloadPackage(4096)) != null)
-			out.write(b);
-		out.close ();
-		docSvc.endDownloadTransfer();
-		docSvc.closeDocument();
+		if (docId != null)
+		{
+			docSvc.openDocument(new DocumentReference(docId));
+			docSvc.openDownloadTransfer();
+			byte [] b;
+			while ( (b = docSvc.nextDownloadPackage(4096)) != null)
+				out.write(b);
+			out.close ();
+			docSvc.endDownloadTransfer();
+			docSvc.closeDocument();
+		}
 	}
 
 	public void testUpload2 () throws Exception

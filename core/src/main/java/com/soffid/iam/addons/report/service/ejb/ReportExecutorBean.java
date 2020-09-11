@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.text.DateFormat;
@@ -38,10 +40,12 @@ import com.soffid.iam.addons.report.api.ParameterValue;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.service.ReportSchedulerService;
 import com.soffid.iam.addons.report.service.ReportService;
+import com.soffid.iam.api.Configuration;
 import com.soffid.iam.doc.api.DocumentOutputStream;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
+import com.soffid.iam.service.ConfigurationService;
 import com.soffid.iam.utils.Security;
 
 import bsh.EvalError;
@@ -118,51 +122,54 @@ public class ReportExecutorBean implements ReportExecutor {
 	}
 
 	@Timeout	
-	@javax.ejb.TransactionAttribute(value=javax.ejb.TransactionAttributeType.SUPPORTS)
+	@javax.ejb.TransactionAttribute(value=javax.ejb.TransactionAttributeType.REQUIRES_NEW)
 	public void timeOutHandler(Timer timer) throws Exception {
 		try
 		{
-			log.info("Looking for reports to execute");
-			for (ExecutedReport sr : reportSchedulerService.getPendingReports())
-			{
-				sr = reportSchedulerService.lockToStart(sr);
-				if (sr == null)
+			if (isMaster()) {
+				log.info("Looking for reports to execute");
+				for (ExecutedReport sr : reportSchedulerService.getPendingReports())
 				{
-					// Locked by anyone else
-				}
-				else if (sr.getUsers() == null || sr.getUsers().isEmpty())
-				{
-					sr.setUsers(new LinkedList<String>());
-					sr.getUsers().add("dummy");
-					reportService.remove(sr);
-				}
-				else
-				{
-					Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
-					String tenant = Security.getTenantName(tenantId);
-					Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
-					try {
-						JasperReport jasper = generateJasper(sr);
-						log.info("Executing report "+sr.getName());
-						execute (sr, jasper);
-						sr.setDone(true);
-						sr.setError(false);
-						sr.setErrorMessage(null);
-						reportSchedulerService.updateReport(sr);
-					} catch (Throwable e) {
-						log.info("Error executing report "+sr.getName(), e);
-						sr.setDone(true);
-						sr.setError(true);
-						String msg = e.toString();
-						if (msg.length() > 1000)
-							msg = msg.substring(0, 1000);
-						sr.setErrorMessage(msg);
-						reportSchedulerService.updateReport(sr);
-					} finally {
-						Security.nestedLogoff();
+					sr = reportSchedulerService.lockToStart(sr);
+					if (sr == null)
+					{
+						// Locked by anyone else
 					}
-					removeJasperFile();
+					else if (sr.getUsers() == null || sr.getUsers().isEmpty())
+					{
+						sr.setUsers(new LinkedList<String>());
+						sr.getUsers().add("dummy");
+						reportService.remove(sr);
+					}
+					else
+					{
+						Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
+						String tenant = Security.getTenantName(tenantId);
+						Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
+						try {
+							JasperReport jasper = generateJasper(sr);
+							log.info("Executing report "+sr.getName());
+							execute (sr, jasper);
+							sr.setDone(true);
+							sr.setError(false);
+							sr.setErrorMessage(null);
+							reportSchedulerService.updateReport(sr);
+						} catch (Throwable e) {
+							log.info("Error executing report "+sr.getName(), e);
+							sr.setDone(true);
+							sr.setError(true);
+							String msg = e.toString();
+							if (msg.length() > 1000)
+								msg = msg.substring(0, 1000);
+							sr.setErrorMessage(msg);
+							reportSchedulerService.updateReport(sr);
+						} finally {
+							Security.nestedLogoff();
+						}
+						removeJasperFile();
+					}
 				}
+				reportService.purgeExpiredReports();
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -428,5 +435,18 @@ public class ReportExecutorBean implements ReportExecutor {
 		documentService.closeDocument();
 	}
 
+	boolean isMaster () throws InternalErrorException, UnknownHostException
+	{
+		ConfigurationService svc = ServiceLocator.instance().getConfigurationService();
+		Configuration cfg = svc.findParameterByNameAndNetworkName("addon.report.server", null);
+		if (cfg != null)
+		{
+			String [] split = cfg.getValue().isEmpty() ? new String[0]: cfg.getValue().split(" ");
+			return split.length == 2 && 
+					split[0].equals(InetAddress.getLocalHost().getHostName());
+		}
+		else
+			return false;
+	}
 
 }

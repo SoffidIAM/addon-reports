@@ -47,7 +47,7 @@ public class ReportSchedulerBean {
 	}
 
 	@Timeout	
-	@javax.ejb.TransactionAttribute(value=javax.ejb.TransactionAttributeType.SUPPORTS)
+	@javax.ejb.TransactionAttribute(value=javax.ejb.TransactionAttributeType.REQUIRES_NEW)
 	public void timeOutHandler(Timer timer) throws Exception {
 		if (isMaster ())
 		{
@@ -62,20 +62,10 @@ public class ReportSchedulerBean {
 					if (sr.getNextExecution().before(now))
 					{
 						reportSchedulerService.startReport(sr);
-						reportExecutor.newReportCreated();
+//						reportExecutor.newReportCreated();
 					}
 					else if (next == null || next.after(sr.getNextExecution()))
 						next = sr.getNextExecution();
-				}
-				long millis = next == null ? 120000 : next.getTime() - now.getTime();
-				if (millis >= 120000) // 2 minutes 
-				{
-					reportService.purgeExpiredReports();
-					millis = 120000;
-				}
-				synchronized(this)
-				{
-					this.wait (millis);
 				}
 			} catch (Throwable e) {
 				log.warn("Error on report scheduler", e);
