@@ -25,6 +25,6 @@ public class ReportParameterEntity {
 	@Column(name="PAR_TYPE", length=32)
 	ParameterType type;
 
-	@Column(name="PAR_REP_ID", composition=true)
+	@Column(name="PAR_REP_ID")
 	ReportEntity report;
 }

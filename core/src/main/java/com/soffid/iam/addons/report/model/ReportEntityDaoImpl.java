@@ -89,6 +89,7 @@ public class ReportEntityDaoImpl extends ReportEntityDaoBase
 				if (rp.getId() != null &&  rp.getId().equals (rpe.getId()))
 				{
 					getReportParameterEntityDao().reportParameterToEntity(rp, rpe, true);
+					rpe.setReport(target);
 					it2.remove();
 					found = true;
 					break;
@@ -97,12 +98,32 @@ public class ReportEntityDaoImpl extends ReportEntityDaoBase
 			if (! found)
 				it.remove(); 
 		}
-		// Add new parameters
-		target.getParameters().addAll( 
-				new HashSet<ReportParameterEntity>(
-						getReportParameterEntityDao().reportParameterToEntityList(
-								newParams)));
-		for (ReportParameterEntity rpe: target.getParameters())
+		for (ReportParameter rp: newParams) {
+			ReportParameterEntity rpe = getReportParameterEntityDao().reportParameterToEntity(rp);
 			rpe.setReport(target);
+			target.getParameters().add(rpe);
+		}
+	}
+
+	@Override
+	public void create(ReportEntity entity) {
+		super.create(entity);
+		updateParams(entity);
+	}
+
+	@Override
+	public void update(ReportEntity entity) {
+		super.update(entity);
+		updateParams(entity);
+	}
+
+	private void updateParams(ReportEntity entity) {
+		for ( ReportParameterEntity p: entity.getParameters()) {
+			p.setReport(entity);
+			if (p.getId() == null)
+				getReportParameterEntityDao().create(p);
+			else
+				getReportParameterEntityDao().update(p);
+		}
 	}
 }

@@ -28,14 +28,14 @@
 
 		<finder name="executedReport" type="executedReport">
 			<ejb-finder jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService" 
-			method="findExecutedReports" if="${queryEnabled}"> 
+			method="findExecutedReports"> 
 				<parameter value="${self.query[0].instance}" />
 			</ejb-finder>
 		</finder>
 
 		<finder name="report" type="report">
 			<ejb-finder jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService" 
-			method="findReports" if="${queryEnabled}">
+			method="findReports">
 				<parameter value="${report}" />
 				<parameter value="${false}" />
 			</ejb-finder>
@@ -43,7 +43,7 @@
 
 		<finder name="scheduledReport" type="scheduledReport">
 			<ejb-finder jndi="openejb:/local/soffid.ejb.com.soffid.iam.addons.report.service.ReportService" 
-			method="findScheduledReports" if="${queryEnabled}">
+			method="findScheduledReports">
 				<parameter value="${report}" />
 			</ejb-finder>
 		</finder>
@@ -123,7 +123,7 @@
 			   	  return "group";
 			} catch (Exception e) {}
 			try {
-			   int i = name.indexOf(" @ ");
+			   int i = name.indexOf("@");
 			   if ( i > 0)
 			   {
 			   	  return "role";

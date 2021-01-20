@@ -6,380 +6,95 @@
 
 <zk>
 
-<window visible="false" title="${msg['wizardWindow']}" id="wizardWindow" width="80%"
-	height="35em"
-	onClose="self.setVisible(false); event.stopPropagation();" 
-	closable="true">
-	<attribute name="onStart"><![CDATA[
-		step1.setVisible(true);
-		step2.setVisible(false);
-		step3.setVisible(false);
-		prevButton.setVisible(false);
-		finishButton.setVisible(false);
-		nextButton.setVisible(true);
-		self.doHighlighted();
-		Listbox lb = lista.getFellow("listbox");
-		lb.setSelectedItem(null);
-	]]></attribute>
-	<zscript><![CDATA[
-		    import es.caib.zkib.datasource.XPathUtils;
-			import es.caib.seycon.ng.web.utils.Autowildcards;
-			import com.soffid.iam.addons.report.api.ParameterType;
-			
-			void search (String name)
-			{
-				es.caib.zkib.component.DataModel dm = model;
-				String name2 = Autowildcards.addPercentChar (Autowildcards.replaceAsteriskChar(name));
-				dm.getJXPathContext().getVariables().declareVariable("report", name2);
-				dm.refresh();
-			}
-		    
-			void search () 
-			{
-				String name = queryWindow.getFellow("queryName").value;
-				search (name);
-			}
-			
-			void createParam (Grid grid, Row row)
-			{
-				es.caib.zkib.binder.BindContext ctx = XPathUtils.getComponentContext(row);
-				Div innerDiv = row.getChildren().get(1);
-				void createParam (ctx, innerDiv);
-			}
-	
+<window visible="false" title="${msg['wizardWindow']}" id="handler" width="80%"
+	onStart="ref:handler.doStart"
+	position="center,top"
+	use="com.soffid.iam.addons.report.web.WizardHandler"
+	closable="false">
 
-			
-	]]></zscript>
-					
-	<div id="step1" height="25em"  style="padding: 8px;">
-		<label style="font-size: large; color:red" value="${msg['wizard.step1'] }"/>
-		<criteris height=""  id="queryWindow" onOK="search()"
-			width="100%">
-			<hbox>
-				<label sclass="etiqueta" value="${msg['report.name']}" width="100px"/>
-				<textbox sclass="textbox" width="150px" onChanging="search(event.value)" 
-					id ="queryName"/>
-				<imageclic onClick="search()" src="~./img/fletxa_cerca.gif" />
-			</hbox>
-			<separator spacing="9px" />
-		</criteris>
-	
-		<navegador id="lista" width="100%" height="">
-			<listbox dataPath="/model:/report" fixedLayout="true"
-				height="180px" id="listbox">
-				<listhead>
-					<listheader label="${msg['report.name']}" width="100%"/>
-				</listhead>
-				<dataitem>
-					<listcell bind="@name" onDoubleClick='Events.sendEvent(new Event("onClick", nextButton))'/>
-				</dataitem>
-			</listbox>
-			
-		</navegador>
-	</div>
-	<div id="step2" height="25em">
-		<label style="font-size: large; color:red" value="${msg['wizard.step2'] }"/>
-		<form dataPath="/wizardEmbed/wizardWindow/lista/listbox:/" width="100%" id="detailForm" style="padding:8px">
-			<div width="100%">
-				<label value="${msg['report.name']}" style="margin-right: 2em"/>
-				<label bind="@name"/>
+	<wizard id="wizard">
+		<attribute name="steps">
+- ${msg['wizard.step1'] }
+- ${msg['wizard.step2'] }
+- ${msg['wizard.step3'] }
+- ${c:l("user-account-new.Finish")}
+		</attribute>
+		<div id="step1" height="25em">
+			<datatable dataPath="/model:/report" maxheight="180px" id="listbox" onSelect="ref:handler.selectedReport" sortColumn="0">
+			<attribute name="columns"><![CDATA[
+-name: ${msg['report.name']}
+ value: name
+			]]></attribute>
+			</datatable>
+			<div style="text-align: right; width: 100%">
+				<button image="/img/undo-r.svg" label="${c:l('common.undo')}" onClick="ref:handler.close" />
+				<button image="/img/next-r.svg" label="${msg['wizard.next']}" onClick="ref:handler.selectReport" id="selectReportButton"/>
 			</div>
-
-			<label value="${msg['report.parameters']}"></label>
-			<grid dataPath="/parameters" id="params" onNewRow="event.data.getChildren().get(1).createParam();" >
-				<columns>
-					<column label="${msg['parameter.name'] }"/>
-					<column label="${msg['parameter.value'] }"/>
-				</columns>
-				<datarow>
-					<label bind="@description"></label>
-					<div use="com.soffid.iam.addons.report.web.ParamValueComponent"></div>
-				</datarow>
-			</grid>
-		</form>
-	</div>
-	<div id="step3" height="25em">
-		<form dataPath="/model:/newReport[1]" width="100%" style="padding:20px" onCreate="onEnableSchedule()">
-			<zscript><![CDATA[
-
-		void onEnableSchedule ()
-		{
-			boolean sch = scheduleRadio.getSelectedItem() == radioschedule;
-			schMonth.getFellow("dada").setDisabled( ! sch );
-			schDayOfMonth.getFellow("dada").setDisabled( ! sch );
-			schDayOfWeek.getFellow("dada").setDisabled(! sch );
-			schHour.getFellow("dada").setDisabled( !sch );
-			schMinute.getFellow("dada").setDisabled( !sch );
-			scheduleTextbox.getFellow("dada").setDisabled( !sch );
-			addUserButton.setDisabled( !sch );
-			addRoleButton.setDisabled( !sch );
-			addGroupButton.setDisabled( !sch );
-			targetDiv.setVisible( sch );
-			targetGrid.setVisible (sch);
-		}
-			 
-			]]>
-			</zscript>
-			<label style="font-size: large; color:red; margin-bottom: 10px" value="${msg['wizard.step3'] }"/>
-			<radiogroup id="scheduleRadio" onCheck="onEnableSchedule()">
-				<radio id="radionow" label="${msg['radio.executeNow'] }" style="display: block; width=100%" value="${false}"/>
-				<radio id="radioschedule" label="${msg['radio.schedule'] }" disabled="${! canScheduleReports}" style="display: block; 100%" value="${true}"/>
-			</radiogroup>
-			<div width="100%" style="margin-top: 10px">
-				<label value="${msg['schedule'] }"/> 
-				<input_dada mascara="no empty" maxim="100" bind="@name" id="scheduleTextbox"/>
-			</div>
-			<div  style="margin-top: 10px">
-				<label value="${msg['month']}"></label><input_dada id="schMonth" mascara="no empty" maxim="20" width_custom="5em" bind="@cronMonth"/>
-				<label value="${msg['day']}"></label><input_dada id="schDayOfMonth" mascara="no empty" maxim="20" width_custom="5em" bind="@cronDayOfMonth"/>
-				<label value="${msg['hour'] }"></label><input_dada id="schHour" mascara="no empty" maxim="20" width_custom="5em" bind="@cronHour"/>
-				<label value="${msg['minute'] }"></label><input_dada id="schMinute" mascara="no empty" maxim="20" width_custom="5em" bind="@cronMinute"/>
-				<label value="${msg['dayOfWeek'] }"></label><input_dada id="schDayOfWeek" mascara="no empty" maxim="20" width_custom="5em" bind="@cronDayOfWeek"/>
-			</div>
-			
-			<div id="targetDiv"  style="margin-top: 10px">
-				<label value="${msg['report.acl']}" style="display:inline-block; padding-top: 10px;"></label>			
-				<div style="float:right; width: auto; display: inline;">
-					<button image="~./img/list-add.gif" label="${msg['acl.type.user'] }" id="addUserButton">
-						<attribute name="onClick"><![CDATA[
-						Events.postEvent("onInicia", desktop.getPage("usuarisLlista")
-								.getFellow("esquemaLlista"), self);
-						]]></attribute>
-						<attribute name="onActualitza"><![CDATA[
-	   					String user = (String) event.data[0];
-						ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);
-						path = es.caib.zkib.datasource.XPathUtils.createPath(ctx.getDataSource(), ctx.getXPath()+ "/target", user);
-						]]></attribute>
-					</button>
-					<button image="~./img/list-add.gif" label="${msg['acl.type.group'] }" id="addGroupButton">
-						<attribute name="onClick"><![CDATA[
-       					desktop.getPage("grupsLlista").setAttribute("tipus", "");
-    					desktop.getPage("grupsLlista").setAttribute("llistaObsolets", false);
-    					Events.postEvent("onInicia",
-    							desktop.getPage("grupsLlista").getFellow("esquemaLlista"), self);
-						]]></attribute>
-						<attribute name="onActualitza"><![CDATA[
-	   					String group = (String) event.data[0];
-						ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);
-						path = es.caib.zkib.datasource.XPathUtils.createPath(ctx.getDataSource(), ctx.getXPath()+ "/target", group);
-						]]></attribute>
-					</button>
-					<button image="~./img/list-add.gif" label="${msg['acl.type.role'] }" id ="addRoleButton">
-						<attribute name="onClick"><![CDATA[
-       					desktop.getPage("rolsLlista").setAttribute("tipus", "cap");
-    					desktop.getPage("rolsLlista").setAttribute("mostraGestionableWF",
-    							"true");//perquè mostre rols gestionableWF	
-    					desktop.getPage("rolsLlista").setAttribute("usuari", ""); //??	
-						Events.postEvent("onInicia", desktop.getPage("rolsLlista")
-								.getFellow("esquemaLlista"), self);
-						]]></attribute>
-						<attribute name="onActualitza"><![CDATA[
-	   					String role = (String) event.data[0];
-	   					String system = (String) event.data[5];
-						ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext(self);
-						path = es.caib.zkib.datasource.XPathUtils.createPath(ctx.getDataSource(), ctx.getXPath()+ "/target", role+" @ "+system);
-						]]></attribute>
-					</button>
-				</div>
-			</div>
-			<grid dataPath="/target" id="targetGrid">
-				<columns>
-					<column label="${msg['acl.type'] }"/>
-					<column label="${msg['acl.name'] }"/>
-					<column label="" width="2em"  valign="top">
-					</column>
-				</columns>
-				<datarow>
-					<label bind="@objectType"></label>
-					<label bind="@objectName"></label>
-					<imageclic align="right" src="~./img/list-remove.gif">
-						<attribute name="onClick">
-							<![CDATA[
-ctx = es.caib.zkib.datasource.XPathUtils.getComponentContext (event.target);
-es.caib.zkib.datasource.XPathUtils.removePath (ctx.getDataSource(), ctx.getXPath());
-									]]>
-						</attribute>
-					</imageclic>
-				</datarow>
-			</grid>
-
-		</form>
-	</div>
-	<div style="width: 100%; height 5em" id ="buttonPanel">
-		<button style="margin: 8px; " label="${msg['wizard.cancel']}">
-			<attribute name="onClick">
-	<![CDATA[
-		wizardWindow.setVisible(false);
-	]]>
-			</attribute>
-		</button>
-		<div style="text-align:right; padding: 8px;">
-			<button id="prevButton" style="margin: 8px;"  label="${msg['wizard.previous']}">
-				<attribute name="onClick">
-		<![CDATA[
-					if (step2.isVisible())
-					{
-						step2.setVisible(false);
-						step1.setVisible(true);
-						prevButton.setVisible(false);
-					} else if (step3.isVisible())
-					{
-						step3.setVisible(false);
-						step2.setVisible(true);
-						finishButton.setVisible(false);
-						nextButton.setVisible(true);
-					}
-		]]>
-				</attribute>
-			</button>
-			<button style="margin: 8px;" label="${msg['wizard.next']}" id="nextButton">
-				<attribute name="onClick">
-		<![CDATA[
-					if (step1.isVisible())
-					{
-						Listbox lb = lista.getFellow("listbox");
-						if (lb.getSelectedItem() == null)
-						{
-							es.caib.zkib.zkiblaf.Missatgebox.info(msg.get("wizard.selectAReport"));
-						}
-						else
-						{
-							step1.setVisible(false);
-							step2.setVisible(true);
-							prevButton.setVisible(true);
-						}
-					}
-					else if (step2.isVisible())
-					{
-						scheduleRadio.setSelectedItem(radionow);
-						onEnableSchedule();
-						step2.setVisible(false);
-						step3.setVisible(true);
-						nextButton.setVisible(false);
-						finishButton.setVisible(true);
-				        es.caib.zkib.component.DataListbox dlb = lista.getFellow("listbox");
-				        String reportName = dlb.getJXPathContext().getValue("@name");
-						scheduleTextbox.getFellow("dada").setValue(reportName);
-					}
-		]]>
-				</attribute>
-			</button>
-			<button style="margin: 8px;" label="${msg['wizard.finish']}" id="finishButton">
-				<attribute name="onClick">
-		<![CDATA[
-		        model.commit();
-		        com.soffid.iam.addons.report.api.ScheduledReport report = model.getJXPathContext().getValue("/newReport[1]").getInstance();
-		        com.soffid.iam.addons.report.service.ejb.ReportService reportService =
-		        		new javax.naming.InitialContext()
-		        			.lookup (com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME);
-		        // Assign params
-		        report.setParams(new LinkedList());
-		        for (Row row: params.getRows().getChildren())
-		        {
-		        	com.soffid.iam.addons.report.api.ParameterValue pv = new com.soffid.iam.addons.report.api.ParameterValue ();
-		        	es.caib.zkib.binder.BindContext ctx = XPathUtils.getComponentContext(row);
-		        	pv.setName(XPathUtils.getValue(ctx, "@name"));
-		        	pv.setType(XPathUtils.getValue(ctx, "@type"));
-		        	Div d = row.getChildren().get(1);
-		        	Component c = d.getChildren().get(0);
-		        	if (c instanceof Checkbox)
-		        		pv.setValue( c.isChecked());
-		        	else
-		        		pv.setValue (c.getValue());
-		        	report.getParams().add(pv);
-		        }
-		        // Assign targets
-		        report.setTarget(new LinkedList());
-		        for (Row row: targetGrid.getRows().getChildren())
-		        {
-		        	es.caib.zkib.binder.BindContext ctx = XPathUtils.getComponentContext(row);
-		        	String name = XPathUtils.getValue(ctx, "@objectName");
-		        	report.getTarget().add(name);
-		        }
-		        // Assign report id
-		        es.caib.zkib.component.DataListbox dlb = lista.getFellow("listbox");
-		        Long reportId = dlb.getJXPathContext().getValue("@id");
-		        report.setReportId(reportId);
-		        if (scheduleRadio.getSelectedItem() == radioschedule)
-		        {
-		        	report.setScheduled(true);
-		        	report = reportService.create(report);
-		        	wizardWindow.setVisible(false);
-		        	es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(msg.get("msg.scheduled"));
-		        }
-		        else
-		        {
-		        	report.setTarget(new LinkedList());
-		        	report.getTarget().add( es.caib.seycon.ng.utils.Security.getCurrentUser() );
-		        	report.setScheduled(false);
-		        	com.soffid.iam.addons.report.api.ExecutedReport report = reportService.launchReport(report);
-		        	Events.postEvent(new Event ("onStart", waitingForReport, report));
-		        }
-		]]>
-				</attribute>
-			</button>
 		</div>
-		<div style="clear: both"></div> 
-	</div>
+		<div id="step2" height="25em">
+			<form dataPath="/wizardEmbed/handler/listbox:/" width="100%" id="detailForm" style="padding:8px">
+				<div width="100%">
+					<label value="${msg['report.name']}" style="margin-right: 2em"/>
+					<label bind="@name"/>
+				</div>
 	
+				<label value="${msg['report.parameters']}"></label>
+				<grid dataPath="/parameters" id="params">
+					<datarow>
+						<div use="com.soffid.iam.addons.report.web.ParamValueComponent"></div>
+					</datarow>
+				</grid>
+				<div style="text-align: right; width: 100%">
+					<button image="/img/undo-r.svg" label="${c:l('common.undo')}" onClick="ref:handler.back" />
+					<button image="/img/next-r.svg" label="${msg['wizard.next']}" onClick="ref:handler.next"/>
+				</div>
+			</form>
+		</div>
+		<div id="step3" height="25em">
+			<form dataPath="/model:/newReport[1]" width="100%" onCreate="ref:handler.onEnableSchedule" >
+				<radiogroup id="scheduleRadio" onCheck="ref:handler.onEnableSchedule()">
+					<radio id="radionow" label="${msg['radio.executeNow'] }" style="display: block; width=100%" value="false"/>
+					<radio id="radioschedule" label="${msg['radio.schedule'] }" disabled="${! soffid:isUserInRole('report:schedule')}" style="display: block; width: 100%" value="true"/>
+				</radiogroup>
+				<customfield3 label="${msg['schedule'] }" required="true" maxlength="100" bind="@name" id="scheduleTextbox" dataType="STRING"/>
+				<customfield3 label="${msg['month']}" required="true" id="schMonth" maxlength="20" bind="@cronMonth" dataType="STRING"/>
+				<customfield3 label="${msg['day']}" required="true" id="schDayOfMonth" maxlength="20" bind="@cronDayOfMonth" dataType="STRING"/>
+				<customfield3 label="${msg['hour'] }" id="schHour" required='true' maxlength="20" bind="@cronHour" dataType="STRING"/>
+				<customfield3 label="${msg['minute'] }" id="schMinute" required="true" maxlength="20" bind="@cronMinute" dataType="STRING"/>
+				<customfield3 label="${msg['dayOfWeek'] }" id="schDayOfWeek" required='true' maxlength="20" bind="@cronDayOfWeek" dataType="STRING"/>
+				
+				<div id="targetDiv"  style="margin-top: 10px">
+					<label value="${msg['report.acl']}" style="display:inline-block; padding-top: 10px;"></label>			
+					<datatable dataPath="/target" id="targetGrid"
+					    multiselect ="true"
+						onSelect="ref:frame.multiSelect"
+						onMultiSelect="ref:frame.multiSelect">
+						<attribute name="columns"> <![CDATA[
+- name: ${msg['acl.type'] }
+  value: objectType
+- name: ${msg['acl.name'] }
+  value: objectName
+		  				]]></attribute>
+		  			</datatable>
+					<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('network:all:create')}" >
+						<div class="deleteButton" onClick="ref:handler.deleteSelected" visible="false">-</div>
+						<div class="addButton" onClick="ref:handler.addIdentity" onAddIdentity="ref:handler.addIdentity2">+</div>
+					</div>
+				</div>
+	
+				<div style="text-align: right; width: 100%">
+					<button image="/img/undo-r.svg" label="${c:l('common.undo')}" onClick="ref:handler.back" />
+					<button image="/img/play-r.svg" label="${msg['wizard.finish']}" onClick="ref:handler.finish"/>
+				</div>
+			</form>
+		</div>
+		<div>
+			<label value="${msg['executing'] }" style="display:inline-block; text-align: center; width: 100%;"/>
+			<image src="/img/wait.gif" style="margin-left:auto; margin-right:auto; margin-top: 20px; display:block"/>
+			<timer id="timer" delay="500" repeats="true" running="false" onTimer="ref:handler.waitForReport"/>
+		</div>
+	</wizard>	
 </window>
 
-<window id="waitingForReport" width="80px" height="80px" position="center" visible="false">
-	<attribute name="onStart"><![CDATA[
-	    com.soffid.iam.addons.report.service.ejb.ReportService reportService =
-	   		new javax.naming.InitialContext()
-	   			.lookup (com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME);
-		waitingForReport.setAttribute("report", event.data);	                                   
- 	    org.zkoss.zul.Timer t = new org.zkoss.zul.Timer();
- 	    t.setRepeats(true);
- 	    t.setDelay(5000);
- 	    t.setParent(waitingForReport);
- 	    t.addEventListener("onTimer", new org.zkoss.zk.ui.event.EventListener (){
- 	    	public void onEvent(Event event) throws Exception
- 	    	{
- 	    		com.soffid.iam.addons.report.api.ExecutedReport report = waitingForReport.getAttribute("report");
- 	    		report = reportService.getExecutedReportStatus(report.getId());
- 	    		if (report.isError())
- 	    		{
- 	    			t.setParent(null);
- 	    			waitingForReport.setVisible(false);
- 	    			wizardWindow.setVisible(false);
- 	    			es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(report.getErrorMessage(), msg.get("result.failed"));
- 	    		}
- 	    		else if (report.isDone())
- 	    		{
-					es.caib.zkib.datasource.XPathUtils.getValue(model, "/executedReport").refresh();
- 	    			t.setParent(null);
- 	    			waitingForReport.setVisible(false);
- 	    			wizardWindow.setVisible(false);
- 	    			if (report.getPdfDocument() == null)
- 	    			{
- 						es.caib.zkib.zkiblaf.Missatgebox.confirmaOK(msg.get("reportIsEmpty"));
- 	    				
- 	    			} else {
- 	    				
-						com.soffid.iam.doc.service.ejb.DocumentService svc =
- 								new javax.naming.InitialContext()
- 									.lookup (com.soffid.iam.doc.service.ejb.DocumentServiceHome.JNDI_NAME);
- 						svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(report.getPdfDocument()));
-
- 						org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(
- 								report.getName()+".pdf", "pdf", "binary/octet-stream", 
- 								new com.soffid.iam.doc.api.DocumentInputStream(svc) );
- 						
- 						Filedownload.save(media);
- 						
- 	    			}
-
- 	    		}
- 	    	}
- 	    });
-	    waitingForReport.doHighlighted();
-	    
-	]]></attribute>
-	<label value="${msg['executing'] }" style="display:inline-block; text-align: center; width: 100%;"/>
-	<image src="~./zk/img/progress2.gif" style="margin-left:auto; margin-right:auto; margin-top: 20px; display:block"/>
-
-</window>
 
 </zk>

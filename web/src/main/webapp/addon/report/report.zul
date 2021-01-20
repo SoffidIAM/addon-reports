@@ -1,49 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?taglib uri="/WEB-INF/tld/web/core.dsp.tld" prefix="c" ?>
+<?taglib uri="/WEB-INF/tld/soffid.dsp.tld" prefix="soffid" ?>
 <?component name="input_criteri" macro-uri="/comu/input_criteri.zul"?>
 <?component name="input_dada" macro-uri="/comu/input_dada.zul"?>
 <?component name="input_etiqueta" macro-uri="/comu/input_etiqueta.zul"?>
-<zk xmlns:h="http://www.w3.org/1999/xhtml">
+<frame xmlns:h="http://www.w3.org/1999/xhtml" mold="div" style="position: relative" 
+	use="com.soffid.iam.addons.report.web.ReportHandler" id="frame">
 
 	<datamodel id="model" rootNode="root" src="addon/report/descriptorReport.xml"/>
 	
 	<embed id="wizardEmbed" src="/addon/report//wizard.zul"/> 
 
-	<zscript><![CDATA[
-		boolean canScheduleReports = Executions.getCurrent().isUserInRole("report:schedule");
-		boolean canAdminReports = Executions.getCurrent().isUserInRole("report:admin");
-		com.soffid.iam.addons.report.web.Messages msg = new com.soffid.iam.addons.report.web.Messages();
-        String reportIdString = execution.getNativeRequest().getParameter("id");
-	]]></zscript>
+	<div sclass="card" id="card">
+		<div sclass="card__face card__face--front">
 	
-	<frame saveContent="true"
-		title="${c:l('reports.menu')}" width="99%">
-		<attribute name="onCreate">
-		if (reportIdString != null)
-		{
-		        r = new  com.soffid.iam.addons.report.api.ExecutedReport();
-		        r.id = Long.parseLong (reportIdString);
-		        Events.postEvent("onStart", wizardEmbed.getFellow("waitingForReport"), r);
-		}
-		</attribute>
+			<div use="com.soffid.iam.web.component.NavigationBar" frame="frame">
+			</div>
 		
-		<tabbox>
-			<tabs>
-				<tab label="${msg['report.executedReports'] }" ></tab>
-				<tab label="${msg['report.scheduledReports'] }" if="${canScheduleReports }"></tab>
-				<tab label="${msg['report.definedReports'] }" if="${canAdminReports}"></tab>
-			</tabs>
-			<tabpanels>
-				<tabpanel><embed src="/addon/report/executed.zul" id="executed"/></tabpanel>
-				<tabpanel if="${canScheduleReports }"><embed src="/addon/report/scheduled.zul" id="scheduled"/></tabpanel>
-				<tabpanel if="${canAdminReports }"><embed src="/addon/report/uploaded.zul" id="uploaded"/></tabpanel>
-			</tabpanels>
-		</tabbox>
-	</frame>
-
-	
-	<include src="usuarisllista.zul"/> 
-    <include src="grupsllista.zul"/>
-	<include src="rolsllista.zul"/>
-	<include src="aplicacionsllista.zul"/>
-</zk>
+			<tabbox>
+				<tabs>
+					<tab label="${msg['report.executedReports'] }" ></tab>
+					<tab label="${msg['report.scheduledReports'] }" if="${soffid:isUserInRole('report:schedule')}" id="schedule_tab"></tab>
+					<tab label="${msg['report.definedReports'] }" if="${soffid:isUserInRole('report:admin')}" id="uploaded_tab"></tab>
+				</tabs>
+				<tabpanels>
+					<tabpanel><embed src="/addon/report/executed.zul" id="executed"/></tabpanel>
+					<tabpanel if="${soffid:isUserInRole('report:schedule')}" fulfill="schedule_tab.onSelect"><embed src="/addon/report/scheduled.zul" id="scheduled"/></tabpanel>
+					<tabpanel if="${soffid:isUserInRole('report:admin')}" fulfill="uploaded_tab.onSelect"><embed src="/addon/report/uploaded.zul" id="uploaded"/></tabpanel>
+				</tabpanels>
+			</tabbox>
+		</div>
+	</div>
+</frame>

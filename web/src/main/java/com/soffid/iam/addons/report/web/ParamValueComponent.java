@@ -1,6 +1,10 @@
 package com.soffid.iam.addons.report.web;
 
+import java.io.IOException;
 import java.util.List;
+
+import javax.ejb.CreateException;
+import javax.naming.NamingException;
 
 import org.zkoss.zk.ui.Component;
 import org.zkoss.zk.ui.Desktop;
@@ -17,7 +21,11 @@ import org.zkoss.zul.Longbox;
 import org.zkoss.zul.Textbox;
 
 import com.soffid.iam.addons.report.api.ParameterType;
+import com.soffid.iam.api.DataType;
+import com.soffid.iam.web.component.CustomField3;
+import com.soffid.iam.web.component.InputField3;
 
+import es.caib.seycon.ng.comu.TypeEnumeration;
 import es.caib.seycon.ng.exception.InternalErrorException;
 import es.caib.zkib.datasource.XPathUtils;
 import es.caib.zkib.jxpath.JXPathNotFoundException;
@@ -40,171 +48,58 @@ public class ParamValueComponent extends Div {
 		es.caib.zkib.binder.BindContext ctx = XPathUtils.getComponentContext(this);
 
 		try {
-			ParameterType type = (ParameterType) XPathUtils.getValue(ctx, "@type");
+			String description = (String) XPathUtils.eval(ctx, "description");
+			DataType dt = new DataType();
+			dt.setLabel(description);
+			ParameterType type = (ParameterType) XPathUtils.eval(ctx, "@type");
 			if (type.equals(ParameterType.DATE_PARAM))
 			{
-				Datebox db = new Datebox();
-				db.setParent(this);
+				dt.setType(TypeEnumeration.DATE_TIME_TYPE);
 			} else if (type.equals(ParameterType.BOOLEAN_PARAM))
 			{
-				Checkbox cb = new Checkbox();
-				cb.setParent(this);
+				dt.setType(TypeEnumeration.BOOLEAN_TYPE);
 			} else if (type.equals(ParameterType.DOUBLE_PARAM))
 			{
-				Doublebox db = new Doublebox ();
-				db.setParent(this);
+				dt.setType(TypeEnumeration.NUMBER_TYPE);
 			} else if (type.equals(ParameterType.STRING_PARAM))
 			{
-				Textbox tb = new Textbox();
-				tb.setWidth("70%");
-				tb.setParent (this);
+				dt.setType(TypeEnumeration.STRING_TYPE);
 			} else if (type.equals(ParameterType.LONG_PARAM))
 			{
-				Longbox lb = new Longbox();
-				lb.setParent (this);
+				dt.setType(TypeEnumeration.NUMBER_TYPE);
 			}
 			else if (type.equals(ParameterType.DISPATCHER_PARAM))
 			{
-				Combobox cb = new Combobox();
-				cb.setWidth("70%");
-				cb.setParent (this);
-				try {
-					for (es.caib.seycon.ng.comu.Dispatcher di : es.caib.seycon.ng.ServiceLocator
-							.instance().getDispatcherService()
-							.findAllActiveDispatchers()) {
-						cb.appendItem(di.getCodi());
-					}
-				} catch (Exception e) {
-					// Ignore exception
-				}
+				dt.setType(TypeEnumeration.STRING_TYPE);
+				dt.setBuiltinHandler(SystemFieldHandler.class.getName());
 			}
 			else if (type.equals(ParameterType.GROUP_PARAM))
 			{
-				Textbox tb = new Textbox();
-				tb.setWidth("70%");
-				tb.setParent (this);
-				es.caib.zkib.zkiblaf.ImageClic ic = new es.caib.zkib.zkiblaf.ImageClic();
-				ic.setParent(this);
-				ic.setSrc("/img/group.png");
-				ic.addEventListener("onClick", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-							Desktop desktop = Executions.getCurrent().getDesktop();
-	      					desktop.getPage("grupsLlista").setAttribute("tipus", "");
-	       					desktop.getPage("grupsLlista").setAttribute("llistaObsolets", false);
-		   					Events.postEvent("onInicia",
-	   							desktop.getPage("grupsLlista").getFellow("esquemaLlista"), event.getTarget());
-						}
-					}
-				);
-				ic.addEventListener("onActualitza", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-							String [] data = (String[]) event.getData();
-	   	   					String group = data[0];
-	   	   					((Textbox)event.getTarget().getPreviousSibling()).setValue(group);
-						}
-					}
-				);
-				
+				dt.setType(TypeEnumeration.GROUP_TYPE);
 			}
 			else if (type.equals(ParameterType.IS_PARAM))
 			{
-				Textbox tb = new Textbox();
-				tb.setWidth("70%");
-				tb.setParent (this);
-				es.caib.zkib.zkiblaf.ImageClic ic = new es.caib.zkib.zkiblaf.ImageClic();
-				ic.setParent(this);
-				ic.setSrc("/img/auditoria.png");
-				ic.addEventListener("onClick", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-							Desktop desktop = Executions.getCurrent().getDesktop();
-		   					Events.postEvent("onInicia",
-	   							desktop.getPage("aplicacionsLlista").
-	   								getFellow("esquemaLlista"), event.getTarget());
-						}
-					}
-				);
-				ic.addEventListener("onActualitza", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-	   	   					String app = (String) event.getData();
-	   	   					((Textbox)event.getTarget().getPreviousSibling()).setValue(app);
-						}
-					}
-				);
-				
+				dt.setType(TypeEnumeration.APPLICATION_TYPE);
 			}
 			else if (type.equals(ParameterType.ROLE_PARAM))
 			{
-				Textbox tb = new Textbox();
-				tb.setWidth("70%");
-				tb.setParent (this);
-				es.caib.zkib.zkiblaf.ImageClic ic = new es.caib.zkib.zkiblaf.ImageClic();
-				ic.setSrc("/img/auditoria.png");
-				ic.setParent(this);
-				ic.addEventListener("onClick", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-							Desktop desktop = Executions.getCurrent().getDesktop();
-		   					desktop.getPage("rolsLlista").setAttribute("tipus", "cap");
-							desktop.getPage("rolsLlista").setAttribute("mostraGestionableWF",
-									"true");//perquè mostre rols gestionableWF	
-							desktop.getPage("rolsLlista").setAttribute("usuari", ""); //??	
-							Events.postEvent("onInicia", desktop.getPage("rolsLlista")
-									.getFellow("esquemaLlista"), event.getTarget());
-						}
-					}
-				);
-				ic.addEventListener("onActualitza", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-							String [] data = (String[]) event.getData();
-		   					String role = (String) data[0];
-		   					String system = (String) data[5];
-	   	   					((Textbox)event.getTarget().getPreviousSibling()).setValue(role+"@"+system);
-						}
-					}
-				);
+				dt.setType(TypeEnumeration.ROLE_TYPE);
 			}
 			else if (type.equals(ParameterType.USER_PARAM))
 			{
-				Textbox tb = new Textbox();
-				tb.setWidth("70%");
-				tb.setParent (this);
-				es.caib.zkib.zkiblaf.ImageClic ic = new es.caib.zkib.zkiblaf.ImageClic();
-				ic.setSrc("/img/user.png");
-				ic.setParent(this);
-				ic.addEventListener("onClick", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-							Desktop desktop = Executions.getCurrent().getDesktop();
-							Events.postEvent("onInicia", desktop.getPage("usuarisLlista")
-									.getFellow("esquemaLlista"), event.getTarget());
-						}
-					}
-				);
-				ic.addEventListener("onActualitza", new org.zkoss.zk.ui.event.EventListener()
-					{
-						public void onEvent(Event event) throws Exception
-						{
-							String [] data = (String[]) event.getData();
-		   					String user = data[0];
-	   	   					((Textbox)event.getTarget().getPreviousSibling()).setValue(user);
-						}
-					}
-				);
+				dt.setType(TypeEnumeration.USER_TYPE);
 			}
-		} catch (JXPathNotFoundException e) {
+			else {
+				dt.setType(TypeEnumeration.STRING_TYPE);
+			}
+			InputField3 inputField = new InputField3();
+			inputField.setDataType(dt);
+			inputField.setParent(this);
+			inputField.setLabel(description);
+			inputField.afterCompose();
+			inputField.createField();
 			
+		} catch (Exception e) {
 		}
 	}
 	
@@ -213,17 +108,11 @@ public class ParamValueComponent extends Div {
 		createParam();
 	}
 
+	
 	@Override
-	public void setPage(Page page) {
-		super.setPage(page);
+	public void onPageAttached(Page newpage, Page oldpage) {
+		super.onPageAttached(newpage, oldpage);
 		createParam();
 	}
 
-	@Override
-	public void setParent(Component parent) {
-		super.setParent(parent);
-		createParam();
-	}
-	
-	
 }

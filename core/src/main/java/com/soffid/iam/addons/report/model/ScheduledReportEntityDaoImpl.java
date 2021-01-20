@@ -32,7 +32,7 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 			else if (ace.getGroup() != null)
 				users.add(ace.getGroup().getName());
 			else if (ace.getRole() != null)
-				users.add(ace.getRole().getName()+"@"+ace.getRole().getSystem().getName());
+				users.add(ace.getRole().getName()+" @ "+ace.getRole().getSystem().getName());
 		}
 		target.setTarget(users);
 		target.setReportId(source.getReport().getId());
@@ -69,7 +69,7 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 			{
 				if (old.getUser() != null && old.getUser().getUserName().equals (user) ||
 						old.getGroup() != null && old.getGroup().getName().equals (user) ||
-						old.getRole() != null && user.equals(old.getRole().getName()+"@"+
+						old.getRole() != null && user.equals(old.getRole().getName()+" @ "+
 								old.getRole().getSystem().getName()))
 				{
 					olds.remove(old);
@@ -82,9 +82,15 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 				ScheduledReportTargetEntity ace = getScheduledReportTargetEntityDao().newScheduledReportTargetEntity();
 				ace.setUser( getUserEntityDao().findByUserName(user) );
 				ace.setGroup(getGroupEntityDao().findByName(user) );
-				int i = user.indexOf('@');
+				int i = user.indexOf(" @ ");
 				if ( i > 0)
-					ace.setRole( getRoleEntityDao().findByNameAndSystem(user.substring(0, i), user.substring(i+1)));
+					ace.setRole( getRoleEntityDao().findByNameAndSystem(user.substring(0, i), user.substring(i+3)));
+				else {
+					i = user.indexOf("@");
+					if ( i > 0)
+						ace.setRole( getRoleEntityDao().findByNameAndSystem(user.substring(0, i), user.substring(i+1)));
+					
+				}
 				ace.setReport(target);
 				target.getAcl().add(ace);
 			}

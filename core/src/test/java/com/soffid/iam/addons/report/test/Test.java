@@ -10,18 +10,18 @@ import java.util.LinkedList;
 import org.apache.commons.io.FileUtils;
 
 import com.soffid.iam.ServiceLocator;
-import com.soffid.iam.doc.api.DocumentReference;
-import com.soffid.iam.doc.exception.DocumentBeanException;
-import com.soffid.iam.doc.service.DocumentService;
-import com.soffid.iam.utils.Security;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ParameterType;
 import com.soffid.iam.addons.report.api.ParameterValue;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.api.ScheduledReport;
+import com.soffid.iam.addons.report.service.ReportSchedulerBootService;
 import com.soffid.iam.addons.report.service.ReportService;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
-import com.soffid.iam.addons.report.service.ReportSchedulerBootService;
+import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.doc.exception.DocumentBeanException;
+import com.soffid.iam.doc.service.DocumentService;
+import com.soffid.iam.utils.Security;
 import com.soffid.test.AbstractHibernateTest;
 
 import es.caib.seycon.ng.comu.Configuracio;
@@ -29,7 +29,6 @@ import es.caib.seycon.ng.exception.InternalErrorException;
 import es.caib.seycon.ng.servei.ApplicationBootService;
 import es.caib.seycon.ng.servei.ConfiguracioService;
 import es.caib.seycon.ng.servei.UsuariService;
-import junit.framework.TestCase;
 
 public class Test extends AbstractHibernateTest {
 	
@@ -83,7 +82,7 @@ public class Test extends AbstractHibernateTest {
 
 	public void testUpload () throws Exception
 	{
-		Security.nestedLogin("admin", new String [] {});
+		Security.nestedLogin("admin", Security.ALL_PERMISSIONS);
 		try {
 			FileInputStream in = new FileInputStream ("./src/test/reports/users.jasper");
 			Report r = reportSvc.upload(in);
@@ -152,7 +151,7 @@ public class Test extends AbstractHibernateTest {
 
 	public void testUpload2 () throws Exception
 	{
-		Security.nestedLogin("admin", new String [] {});
+		Security.nestedLogin("admin", Security.ALL_PERMISSIONS);
 		try {
 			FileInputStream in = new FileInputStream ("./src/test/reports/users-bsh.jasper");
 			Report r = reportSvc.upload(in);

@@ -55,6 +55,7 @@ import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ReportEntityDao;
 import com.soffid.iam.addons.report.model.ReportParameterEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
+import com.soffid.iam.addons.report.model.ScheduledReportTargetEntity;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutor;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
 import com.soffid.iam.api.Configuration;
@@ -229,7 +230,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
         {
         	log.info("Reseting ACL");
 	        r.setAcl(new LinkedList<String>());
-	        r.getAcl().add(Security.getCurrentUser());
+	        if (Security.getCurrentUser() != null)
+	        	r.getAcl().add(Security.getCurrentUser());
         }
 
         DocumentReference ref = storeDocument (name, data.toByteArray());
@@ -271,12 +273,13 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			er.setDone(false);
 			er.setError(false);
 			er.setName(schedule.getName());
-			if (myself != null)
+			if (myself != null) {
 				er.setUser(myself.getUserName());
-			ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
-			erte.setReport(er);
-			erte.setUser(myself);
-			er.getAcl().add(erte);
+				ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
+				erte.setReport(er);
+				erte.setUser(myself);
+				er.getAcl().add(erte);
+			}
 			
 			for (ParameterValue pv: schedule.getParams())
 			{
@@ -288,7 +291,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			getExecutedReportEntityDao().create(er);
 			
 			try {
-				String jndi = "openejb:/local/iam-ear-com.soffid.iam.addons.report.service.ejb.ReportExecutorBeanLocal";
+				String jndi = "java:module/ReportExecutorBean";
 				ReportExecutor bean =
 						(ReportExecutor) new InitialContext().lookup(jndi);
 				bean.newReportCreated();
@@ -321,6 +324,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	}
 
 	private boolean canView(ExecutedReportEntity report) throws InternalErrorException {
+		if (Security.isUserInRole("report:admin"))
+			return true;
 		User user = getUserService().getCurrentUser();
 		AccessControlList acl = new AccessControlList();
 		
@@ -381,6 +386,11 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		{
 			getExecutedReportEntityDao().remove(er);
 		}
+
+		for (ReportParameterEntity rp: re.getParameters())
+		{
+			getReportParameterEntityDao().remove(rp);
+		}
 		getReportEntityDao().remove(re);
 	}
 
@@ -416,6 +426,12 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	protected void handleUpdate(ScheduledReport schedule) throws Exception {
 		ScheduledReportEntity sre = getScheduledReportEntityDao().scheduledReportToEntity(schedule);
 		getScheduledReportEntityDao().update(sre);
+		for ( ScheduledReportTargetEntity target: sre.getAcl()) {
+			if (target.getId() == null)
+				getScheduledReportTargetEntityDao().create(target);
+			else
+				getScheduledReportTargetEntityDao().update(target);
+		}
 	}
 
 	@Override

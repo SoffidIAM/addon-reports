@@ -1,0 +1,10 @@
+- name: soffid.admin
+  img: /img/menu/laboratory.svg
+  options:
+  - name: seu.monitoritzacio
+    options:
+    - name: report.menu
+      url: addon/report/report.zul
+      img: /addon/report/img/menu/report.svg
+      permissions: ["seu:report:show"]
+            

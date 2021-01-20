@@ -283,31 +283,21 @@
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-tomee</artifactId>
-			<version>2.0.0-M1</version>
+			<version>3.0.0-beta-1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-core</artifactId>
-			<version>2.0.0-M1</version>
+			<version>3.0.0-beta-1</version>
 			<type>ejb</type>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.openejb</groupId>
-			<artifactId>javaee-api</artifactId>
-			<version>6.0-6</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-core</artifactId>
-			<version>2.0.0-M1</version>
+			<version>3.0.0-beta-1</version>
 			<scope>test</scope>
 			<classifier>test-jar</classifier>
 			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>jboss</groupId>
-			<artifactId>jboss-j2ee</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>bouncycastle</groupId>
@@ -387,9 +377,6 @@
 			<artifactId>net.tascalate.javaflow.api</artifactId>
 			<version>2.0</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.google.code.maven-play-plugin.org.apache.commons/commons-javaflow 
-			<dependency> <groupId>com.google.code.maven-play-plugin.org.apache.commons</groupId> 
-			<artifactId>commons-javaflow</artifactId> <version>1590792</version> </dependency> -->
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-catalina</artifactId>
@@ -411,6 +398,12 @@
 			<artifactId>dbtools</artifactId>
 			<version>1.10</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>7.0</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>
