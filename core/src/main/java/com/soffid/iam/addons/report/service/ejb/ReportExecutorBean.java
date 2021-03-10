@@ -236,32 +236,30 @@ public class ReportExecutorBean implements ReportExecutor {
 				v.put("soffid.user", sr.getUser());
 			
 			// preparamos para imprimir
-			JasperPrint jasperPrint;
+			File jasperPrint = File.createTempFile("repert", "jasper");
 
 			Connection conn = session.connection();
 			
-			jasperPrint = JasperFillManager.fillReport(jasperReport, v, conn);
+			JasperFillManager.fillReportToFile(jasperReport, jasperPrint.getPath(), v, conn);
 			
-	        if (jasperPrint.getPages().size() > 0) {
-	        	File outFile = File.createTempFile("report", "pdf");
-	        	
+	        if (jasperPrint.length() > 0) {
 	        	documentService.createDocument("application/pdf", sr.getName()+".pdf", "report");
 	        	DocumentOutputStream out = new DocumentOutputStream(documentService);
-	        	JasperExportManager.exportReportToPdfStream (jasperPrint, out);
+	        	JasperExportManager.exportReportToPdfStream (new FileInputStream(jasperPrint), out);
 	        	out.close ();
 	        	sr.setPdfDocument(documentService.getReference().toString());
 	        	documentService.closeDocument();
 	        	
 	        	documentService.createDocument("text/xml", sr.getName()+".xml", "report");
 	        	out = new DocumentOutputStream(documentService);
-	        	JasperExportManager.exportReportToXmlStream (jasperPrint, out);
+	        	JasperExportManager.exportReportToXmlStream (new FileInputStream(jasperPrint), out);
 	        	out.close ();
 	        	sr.setXmlDocument(documentService.getReference().toString());
 	        	documentService.closeDocument();
 
 	        	documentService.createDocument("application/zip", sr.getName()+".zip", "report");
 	        	File htmlFile = File.createTempFile("soffid"+sr.getId(), ".html");
-	        	JasperExportManager.exportReportToHtmlFile(jasperPrint, htmlFile.getPath());
+	        	JasperExportManager.exportReportToHtmlFile(jasperPrint.getPath(), htmlFile.getPath());
 	        	out = new DocumentOutputStream(documentService);
 	        	JarOutputStream jar = new JarOutputStream (out);
 	        	dump (jar, htmlFile, sr.getName()+".html");
