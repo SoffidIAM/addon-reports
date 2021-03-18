@@ -12,6 +12,7 @@ import org.jfree.util.Log;
 
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.service.DocumentService;
+import com.soffid.iam.utils.ConfigurationCache;
 
 import es.caib.seycon.ng.comu.Configuracio;
 import es.caib.seycon.ng.comu.Usuari;
@@ -72,7 +73,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 			{
 				String userName = target.getUser().getUserName();
 				log.info("Notifying report to "+userName);
-				String hostName = System.getProperty("AutoSSOURL");
+				String hostName = ConfigurationCache.getProperty("AutoSSOURL");
 				if (hostName == null)
 				{
 					hostName = System.getProperty("hostName")+"."+System.getProperty("domainName")+":8080";
