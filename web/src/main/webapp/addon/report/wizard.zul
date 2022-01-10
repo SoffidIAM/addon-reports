@@ -39,9 +39,9 @@
 				</div>
 	
 				<label value="${msg['report.parameters']}"></label>
-				<grid dataPath="/parameters" id="params">
+				<grid dataPath="/parameters" id="params" onNewRow="ref:handler.newParam">
 					<datarow>
-						<div use="com.soffid.iam.addons.report.web.ParamValueComponent"></div>
+						<div/>
 					</datarow>
 				</grid>
 				<div style="text-align: right; width: 100%">

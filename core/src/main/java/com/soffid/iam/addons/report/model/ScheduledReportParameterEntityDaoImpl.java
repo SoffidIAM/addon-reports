@@ -61,7 +61,7 @@ public class ScheduledReportParameterEntityDaoImpl extends ScheduledReportParame
 						((Integer) source.getValue()).longValue():
 							source.getValue() instanceof Long ?
 									(Long)source.getValue():
-									Long.decode(source.toString()));
+									Long.decode(source.getValue().toString()));
 		else if (source.getType().equals (ParameterType.DOUBLE_PARAM))
 			target.setDoubleValue(source.getValue() == null ? null:
 				source.getValue() instanceof Float ?

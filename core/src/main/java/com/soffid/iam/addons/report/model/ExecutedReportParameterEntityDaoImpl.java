@@ -46,12 +46,12 @@ public class ExecutedReportParameterEntityDaoImpl extends ExecutedReportParamete
 			target.setLongValue(source.getValue() == null ? null:
 				source.getValue() instanceof Integer ?
 						((Integer) source.getValue()).longValue():
-						(Long)source.getValue());
+						Long.valueOf(source.getValue().toString()));
 		else if (source.getType().equals (ParameterType.DOUBLE_PARAM))
 			target.setDoubleValue(source.getValue() == null ? null:
 				source.getValue() instanceof Float ?
 						((Float) source.getValue()).doubleValue():
-						(Double)source.getValue());
+						Double.valueOf(source.getValue().toString()));
 		else if (source.getType().equals (ParameterType.BOOLEAN_PARAM))
 			target.setBooleanValue(source.getValue() == null ? null:
 				(Boolean)source.getValue());
