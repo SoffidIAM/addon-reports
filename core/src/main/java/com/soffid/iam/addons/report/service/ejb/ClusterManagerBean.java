@@ -26,11 +26,16 @@ public class ClusterManagerBean  {
 
 	@Resource
 	private SessionContext context;
-
+	boolean disabled;
+	
 	@PostConstruct
 	public void init() throws Exception {
 		log.info("Started report bean");
-		context.getTimerService().createTimer(60000, 60000, "Cluster manager");
+		if ("true".equals(System.getProperty("soffid.reportscheduler.disabled"))) {
+			log.info("Report scheduler is disabled in this node");
+		} else {
+			context.getTimerService().createTimer(60000, 60000, "Cluster manager");
+		}
 	}
 
 	@Timeout	

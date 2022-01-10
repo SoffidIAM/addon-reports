@@ -104,4 +104,10 @@ public class ScheduledHandler extends FrameHandler {
 	public DataModel getModel() {
 		return (DataModel) Path.getComponent("/model");
 	}
+	
+	public void newReport(Event event) {
+		Events.sendEvent(new Event("onStart", getPage().getFellow("wizardEmbed").getFellow("handler")));
+
+	}
+
 }

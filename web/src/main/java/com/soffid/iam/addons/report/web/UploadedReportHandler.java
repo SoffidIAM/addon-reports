@@ -55,7 +55,7 @@ public class UploadedReportHandler extends FrameHandler {
 				else
 					throw new UiException("unsupported text file");
 				ejb.upload(in);
-				getModel();
+				getModel().refresh();
 			} catch (Exception e) {
 				throw new UiException(e);
 			}
