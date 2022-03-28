@@ -8,6 +8,8 @@ import com.soffid.iam.addons.acl.service.ACLService;
 import com.soffid.iam.doc.service.DocumentService;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ExecutedReportCriteria;
+import com.soffid.iam.addons.report.api.QueryRequest;
+import com.soffid.iam.addons.report.api.QueryResponse;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.model.ExecutedReportEntity;
@@ -70,6 +72,10 @@ public class ReportService {
 	@Description("Updates a report definition. No parameter can be created, only updates are allowed")
 	public void update (Report report) {}
 	
+	@Operation(grantees={Admin.class})
+	@Description("Tool to perform queries from Jaspersoft Studio")
+	public QueryResponse query (QueryRequest report) {return null;}
+
 	// Schedule reports
 	
 	@Operation(grantees={Schedule.class})

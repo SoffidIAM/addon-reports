@@ -218,6 +218,8 @@ public class WizardHandler extends Window {
         	report = reportService.create(report);
         	setVisible(false);
         	es.caib.zkib.zkiblaf.Missatgebox.avis(new Messages().get("msg.scheduled"));
+ 			DataNodeCollection coll2 = (DataNodeCollection) model.getJXPathContext().getValue("/scheduledReport");
+ 			coll2.refresh();
         }
         else
         {
@@ -233,25 +235,30 @@ public class WizardHandler extends Window {
 	
  	public void waitForReport(Event event) throws Exception
  	{
+ 		if (waitingForReport == null)
+ 			return; // Duplicated timer event
+ 		ExecutedReport report = waitingForReport;
         com.soffid.iam.addons.report.service.ejb.ReportService reportService =
         		(ReportService) new javax.naming.InitialContext()
 			.lookup (com.soffid.iam.addons.report.service.ejb.ReportServiceHome.JNDI_NAME);
-        waitingForReport = reportService.getExecutedReportStatus(waitingForReport.getId());
+        report = reportService.getExecutedReportStatus(report.getId());
     	Timer t = (Timer) getFellow("timer");
- 		if (waitingForReport.isError())
+ 		if (report.isError())
  		{
+ 			waitingForReport = null;
  			t.stop();
  			setVisible(false);
- 			es.caib.zkib.zkiblaf.Missatgebox.avis(waitingForReport.getErrorMessage(), new Messages().get("result.failed"));
+ 			es.caib.zkib.zkiblaf.Missatgebox.avis(report.getErrorMessage(), new Messages().get("result.failed"));
  		}
- 		else if (waitingForReport.isDone())
+ 		else if (report.isDone())
  		{
+ 			waitingForReport = null;
+ 			t.stop();
  			DataModel model = (DataModel) Path.getComponent("/model");
  			DataNodeCollection coll = (DataNodeCollection) model.getJXPathContext().getValue("/executedReport");
 			coll.refresh();
- 			t.stop();
  			setVisible(false);
- 			if (waitingForReport.getPdfDocument() == null)
+ 			if (report.getPdfDocument() == null)
  			{
 					es.caib.zkib.zkiblaf.Missatgebox.avis(new Messages().get("reportIsEmpty"));
  				
@@ -260,10 +267,10 @@ public class WizardHandler extends Window {
 				com.soffid.iam.doc.service.ejb.DocumentService svc =
 							(DocumentService) new javax.naming.InitialContext()
 					.lookup (com.soffid.iam.doc.service.ejb.DocumentServiceHome.JNDI_NAME);
-					svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(waitingForReport.getPdfDocument()));
+					svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(report.getPdfDocument()));
 
 					org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(
-							waitingForReport.getName()+".pdf", "pdf", "binary/octet-stream", 
+							report.getName()+".pdf", "pdf", "binary/octet-stream", 
 							new com.soffid.iam.doc.api.DocumentInputStream(svc) );
 					
 					Filedownload.save(media);

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.rmi.RemoteException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Collection;
@@ -20,9 +19,7 @@ import java.util.List;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import javax.ejb.CreateException;
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -34,17 +31,13 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import net.sf.jasperreports.engine.JRParameter;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.util.JRLoader;
-
 import com.soffid.iam.addons.acl.api.AccessControlList;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ExecutedReportCriteria;
-import com.soffid.iam.addons.report.api.ParameterType;
 import com.soffid.iam.addons.report.api.ParameterValue;
+import com.soffid.iam.addons.report.api.QueryRequest;
+import com.soffid.iam.addons.report.api.QueryResponse;
 import com.soffid.iam.addons.report.api.Report;
-import com.soffid.iam.addons.report.api.ReportParameter;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.model.ExecutedReportEntity;
 import com.soffid.iam.addons.report.model.ExecutedReportEntityDao;
@@ -57,21 +50,17 @@ import com.soffid.iam.addons.report.model.ReportParameterEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportTargetEntity;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutor;
-import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
+import com.soffid.iam.addons.report.service.jasper.QueryExecutor;
 import com.soffid.iam.api.Configuration;
 import com.soffid.iam.api.User;
 import com.soffid.iam.doc.api.DocumentReference;
-import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
 import com.soffid.iam.model.UserEntity;
 import com.soffid.iam.model.identity.IdentityGenerator;
 import com.soffid.iam.utils.ConfigurationCache;
 import com.soffid.iam.utils.Security;
 
-import es.caib.seycon.ng.comu.Configuracio;
-import es.caib.seycon.ng.comu.Usuari;
 import es.caib.seycon.ng.exception.InternalErrorException;
-import es.caib.seycon.ng.servei.ConfiguracioService;
 
 
 public class ReportServiceImpl extends ReportServiceBase implements ApplicationContextAware, InitializingBean {
@@ -111,152 +100,10 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		return getReportEntityDao().toReportList( entities );
 	}
 
-	@SuppressWarnings("unchecked")
-	private ParameterType guessParameterType (JRParameter jp)
-	{
-    	if (jp.getValueClass().isAssignableFrom(String.class))
-    		return(ParameterType.STRING_PARAM);
-    	else if (jp.getValueClass().isAssignableFrom(int.class) ||
-    			jp.getValueClass().isAssignableFrom(long.class) ||
-    			jp.getValueClass().isAssignableFrom(Integer.class) ||
-    			jp.getValueClass().isAssignableFrom(Long.class) )
-    	{
-    		return (ParameterType.LONG_PARAM);
-    	}
-    	else if (jp.getValueClass().isAssignableFrom(double.class) ||
-    			jp.getValueClass().isAssignableFrom(float.class) ||
-    			jp.getValueClass().isAssignableFrom(Double.class) ||
-    			jp.getValueClass().isAssignableFrom(Float.class) )
-    	{
-    		return (ParameterType.DOUBLE_PARAM);
-    	}
-    	else if (jp.getValueClass().isAssignableFrom(Date.class) ||
-    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
-    			jp.getValueClass().isAssignableFrom(Date.class) ||
-    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
-    			jp.getValueClass().isAssignableFrom(Calendar.class) )
-    	{
-    		return(ParameterType.DATE_PARAM);
-    	}
-    	else if (jp.getValueClass().isAssignableFrom(boolean.class) ||
-    			jp.getValueClass().isAssignableFrom(Boolean.class)  )
-    	{
-    		return(ParameterType.BOOLEAN_PARAM);
-    	} 
-    	else
-    	{
-    		return (ParameterType.STRING_PARAM);
-    	}
-	}
-	
 	@Override
 	protected Report handleUpload(InputStream report) throws Exception {
-		ByteArrayOutputStream data = new ByteArrayOutputStream();
-		int read;
-		byte buffer[] = new byte[4096];
-		while ( (read = report.read(buffer)) > 0)
-		{
-			data.write(buffer, 0, read);
-		}
-		data.close();
-        JasperReport jr = (JasperReport) JRLoader.loadObject(new ByteArrayInputStream(data.toByteArray()));
-        String name = jr.getName();
-
-        Report r;
-		ReportEntity re = getReportEntityDao().findByName(name);
-		if (re == null)
-		{
-			r = new Report();
-			r.setParameters(new LinkedList<ReportParameter>());
-		}
-		else
-		{
-			log.info("Upgrading report definition");
-			r = getReportEntityDao().toReport(re);
-		}
-
-		Collection<ReportParameter> oldParameters = r.getParameters();
-		r.setName(jr.getName());
-        List<ReportParameter> rp = new LinkedList<ReportParameter>();
-        for (JRParameter jp: jr.getParameters())
-        {
-        	if ( jp.isForPrompting() && ! jp.isSystemDefined())
-        	{
-        		// Search existing parameter
-        		log.info("Analyzing parameter "+jp.getName());
-        		boolean found = false;
-        		for (ReportParameter existingParameter: oldParameters)
-        		{
-            		log.info("Is "+existingParameter.getName()+"?");
-        			if (existingParameter.getName().equals(jp.getName()))
-        			{
-        				log.info("Found");
-        				found = true;
-    		        	if (jp.getDescription() != null)
-    		        		existingParameter.setDescription(jp.getDescription());
-        				rp.add(existingParameter);
-        				ParameterType desired = guessParameterType(jp);
-        				ParameterType existing = existingParameter.getType();
-        				if (desired.equals(existing) ||
-        						existing == ParameterType.USER_PARAM ||
-        						existing == ParameterType.DISPATCHER_PARAM ||
-        						existing == ParameterType.GROUP_PARAM || 
-        						existing == ParameterType.ROLE_PARAM ||
-        						existing == ParameterType.IS_PARAM)
-        				{
-            				log.info("Keep data type");
-        					// Compatibles types, nothing to do
-        				}
-        				else
-        					existingParameter.setType(desired);
-        				break;
-        			}
-        		}
-        		if (! found )
-        		{
-		        	ReportParameter p = new ReportParameter();
-		        	p.setName(jp.getName());
-		        	p.setDescription (jp.getDescription());
-		        	if (p.getDescription() == null)
-		        		p.setDescription("No description available");
-		        	p.setType(guessParameterType(jp));
-		        	rp.add(p);
-        		}
-	    	}
-        }
-        
-        r.setParameters(rp);
-        if (r.getAcl() == null || r.getAcl().isEmpty())
-        {
-        	log.info("Reseting ACL");
-	        r.setAcl(new LinkedList<String>());
-	        if (Security.getCurrentUser() != null)
-	        	r.getAcl().add(Security.getCurrentUser());
-        }
-
-        DocumentReference ref = storeDocument (name, data.toByteArray());
-        
-        re = getReportEntityDao().reportToEntity(r);
-        re.setDocId(ref.toString());
-        if (r.getId() == null)
-        	getReportEntityDao().create(re);
-        else
-        {
-        	getReportEntityDao().update(re);
-       		getReportParameterEntityDao().update( re.getParameters());
-       		getReportACLEntityDao().update(re.getAcl());
-        }
-        
-        return getReportEntityDao().toReport(re);
-	}
-
-	private DocumentReference storeDocument(String name, byte[] data) throws NamingException, RemoteException, CreateException, DocumentBeanException, InternalErrorException {
-		DocumentService doc = getDocumentService();
-		doc.createDocument("application/x-rpt", name+".rpt", "report");
-		doc.openUploadTransfer();
-		doc.nextUploadPackage(data, data.length);
-		doc.endUploadTransfer();
-		return doc.getReference();
+		return new QueryExecutor().upload(getReportEntityDao(), getReportParameterEntityDao(), 
+				getReportACLEntityDao(), getDocumentService(), report);
 	}
 
 	@Override
@@ -687,6 +534,12 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 				getExecutedReportEntityDao().remove(ere);
 			}
 		}
+	}
+
+	@Override
+	protected QueryResponse handleQuery(QueryRequest request) throws Exception {
+		SessionFactory sf = (SessionFactory) applicationContext.getBean("sessionFactory");
+		return new QueryExecutor().executeQuery(request, sf);
 	}
 
 }

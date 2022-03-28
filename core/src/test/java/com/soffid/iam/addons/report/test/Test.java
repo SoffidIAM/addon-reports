@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Date;
 import java.util.LinkedList;
 
@@ -18,6 +19,7 @@ import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.service.ReportSchedulerBootService;
 import com.soffid.iam.addons.report.service.ReportService;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
+import com.soffid.iam.api.Configuration;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
@@ -50,13 +52,15 @@ public class Test extends AbstractHibernateTest {
 		ServiceLocator.instance().init("testBeanRefFactory.xml", "beanRefFactory");
 
 //		Security.onSyncServer();
-		Security.nestedLogin("master", "anonymous", Security.ALL_PERMISSIONS);
+		Security.nestedLogin("master", "admin", Security.ALL_PERMISSIONS);
 		
 		configService = (ConfiguracioService) context.getBean (ConfiguracioService.SERVICE_NAME);
 		
 		config ("soffid.ui.docStrategy", "com.soffid.iam.doc.nas.comm.LocalFileSystemStrategy");
 		config ("soffid.ui.docPath", f1.getPath());
-		config("soffid.ui.docTempPath", f2.getPath());
+		config ("soffid.ui.docTempPath", f2.getPath());
+		config ("addon.report.server", InetAddress.getLocalHost().getHostName()+" 0");
+
 		UsuariService usuariSvc = (UsuariService) context.getBean(UsuariService.SERVICE_NAME);
 
 		reportSvc = (ReportService) context.getBean(ReportService.SERVICE_NAME);
@@ -68,9 +72,10 @@ public class Test extends AbstractHibernateTest {
 	}
 
 	private void config(String code, String value) throws InternalErrorException {
-		Configuracio c = new Configuracio(code, value);
-		configService.create(c);
-		
+		if (configService.findParametreByCodiAndCodiXarxa(code, null) == null) {
+			Configuracio c = new Configuracio(code, value);
+			configService.create(c);
+		}
 	}
 
 	public void testDevelopment () throws InternalErrorException, IOException
@@ -127,6 +132,8 @@ public class Test extends AbstractHibernateTest {
 		
 		if (execution.isError())
 			throw new InternalErrorException ("Report generation has failed :"+execution.getErrorMessage());
+		if (!execution.isDone())
+			throw new InternalErrorException ("Report generation has not finished :"+execution.getErrorMessage());
 		
 		downloadDocument ("target/surefire/report.pdf", execution.getPdfDocument());
 		downloadDocument ("target/surefire/report.zip", execution.getHtmlDocument());

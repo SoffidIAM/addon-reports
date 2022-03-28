@@ -1,39 +1,29 @@
 package com.soffid.iam.addons.report.service;
 
 import java.net.InetAddress;
-import java.text.DateFormat;
-import java.util.Calendar;
+import java.net.URI;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.logging.LogFactory;
-import org.jfree.util.Log;
-
-import com.soffid.iam.doc.api.DocumentReference;
-import com.soffid.iam.doc.service.DocumentService;
-import com.soffid.iam.utils.ConfigurationCache;
-
-import es.caib.seycon.ng.comu.Configuracio;
-import es.caib.seycon.ng.comu.Usuari;
-import es.caib.seycon.ng.exception.InternalErrorException;
-import es.caib.seycon.ng.utils.Security;
 
 import com.soffid.iam.addons.acl.api.AccessControlList;
 import com.soffid.iam.addons.report.api.ExecutedReport;
 import com.soffid.iam.addons.report.api.ParameterValue;
-import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.model.ExecutedReportEntity;
 import com.soffid.iam.addons.report.model.ExecutedReportEntityDao;
 import com.soffid.iam.addons.report.model.ExecutedReportParameterEntity;
 import com.soffid.iam.addons.report.model.ExecutedReportTargetEntity;
-import com.soffid.iam.addons.report.model.ReportACLEntity;
 import com.soffid.iam.addons.report.model.ReportEntity;
 import com.soffid.iam.addons.report.model.ReportEntityDao;
 import com.soffid.iam.addons.report.model.ScheduledReportEntity;
 import com.soffid.iam.addons.report.model.ScheduledReportEntityDao;
 import com.soffid.iam.addons.report.model.ScheduledReportTargetEntity;
+import com.soffid.iam.doc.api.DocumentReference;
+import com.soffid.iam.utils.ConfigurationCache;
+
+import es.caib.seycon.ng.utils.Security;
 
 public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 
@@ -76,7 +66,12 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 				String hostName = ConfigurationCache.getProperty("AutoSSOURL");
 				if (hostName == null)
 				{
-					hostName = System.getProperty("hostName")+"."+System.getProperty("domainName")+":8080";
+					hostName = "http://"+System.getProperty("hostName")+"."+System.getProperty("domainName")+":8080";
+				} else {
+					final URI uri = new URI(hostName);
+					hostName = uri.getScheme()+"://"+uri.getHost();
+					if (uri.getPort() != -1)
+						hostName = hostName + ":"+uri.getPort();
 				}
 				getMailService().sendHtmlMailToActors(new String[]{userName}, 
 						ere.getName(), 
@@ -86,7 +81,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 						+ Messages.getString("ReportSchedulerServiceImpl.3") //$NON-NLS-1$
 						+ "<b>"+ere.getName()+"</b>" //$NON-NLS-1$ //$NON-NLS-2$
 								+ Messages.getString("ReportSchedulerServiceImpl.6") //$NON-NLS-1$
-								+ "<a href='http://"+hostName+"/index.zul?target=addon/report/report.zul?id=" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+								+ "<a href='http://"+hostName+"/soffid/index.zul?target=addon/report/report.zul?id=" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 								+ report.getId()
 								+"'>" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 								+Messages.getString("ReportSchedulerServiceImpl.0") //$NON-NLS-1$

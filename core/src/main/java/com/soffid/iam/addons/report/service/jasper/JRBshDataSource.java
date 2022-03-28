@@ -1,10 +1,14 @@
-package com.soffid.iam.addons.report.service;
+package com.soffid.iam.addons.report.service.jasper;
 
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -16,12 +20,12 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import net.sf.jasperreports.engine.JasperReport;
 
-public class SoffidJRDataSource implements JRDataSource {
+public class JRBshDataSource implements JRSoffidDataSource {
 
 	Object current = null;
 	private Iterator<Object> iterator;
 	
-	public SoffidJRDataSource(Collection<Object> results)
+	public JRBshDataSource(Collection<Object> results)
 	{
 		iterator = results.iterator();
 	}
@@ -48,4 +52,28 @@ public class SoffidJRDataSource implements JRDataSource {
 		}
 	}
 
+	@Override
+	public Map<String, Object> getFields() throws JRException {
+		try {
+			Map<String,Object> fields = new HashMap<>();
+			for (PropertyDescriptor pd: PropertyUtils.getPropertyDescriptors(current) ) {
+				final Object value = PropertyUtils.getProperty(current, pd.getName());
+				fields.put(pd.getName(), value);
+			}
+			return fields;
+		} catch (Exception e) {
+			throw new JRException("Unable to read object of class "+current.getClass().getName(), e);
+		}
+	}
+
+	@Override
+	public List<String> getColumns() throws JRException {
+		return new LinkedList<String>();
+	}
+
+	@Override
+	public List<String> getColumnClasses() throws JRException {
+		return new LinkedList<String>();
+	}
+	
 }
