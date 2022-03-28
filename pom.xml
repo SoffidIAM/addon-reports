@@ -97,6 +97,7 @@
 		<module>common</module>
 		<module>core</module>
 		<module>web</module>
+		<module>webservice</module>
 		<module>addon</module>
 	</modules>
 	<dependencies>
