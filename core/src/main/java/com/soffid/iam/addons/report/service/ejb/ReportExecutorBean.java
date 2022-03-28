@@ -40,6 +40,7 @@ import com.soffid.iam.addons.report.api.ParameterValue;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.service.ReportSchedulerService;
 import com.soffid.iam.addons.report.service.ReportService;
+import com.soffid.iam.addons.report.service.SessionHolder;
 import com.soffid.iam.api.Configuration;
 import com.soffid.iam.doc.api.DocumentOutputStream;
 import com.soffid.iam.doc.api.DocumentReference;
@@ -130,44 +131,34 @@ public class ReportExecutorBean implements ReportExecutor {
 				log.info("Looking for reports to execute");
 				for (ExecutedReport sr : reportSchedulerService.getPendingReports())
 				{
-					sr = reportSchedulerService.lockToStart(sr);
-					if (sr == null)
-					{
-						// Locked by anyone else
+					if (sr.getUser() == null)
+						sr.setUser("guest");
+					if (sr.getUsers().isEmpty())
+						sr.getUsers().add("guest");
+					Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
+					String tenant = Security.getTenantName(tenantId);
+					Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
+					try {
+						JasperReport jasper = generateJasper(sr);
+						log.info("Executing report "+sr.getName());
+						execute (sr, jasper);
+						sr.setDone(true);
+						sr.setError(false);
+						sr.setErrorMessage(null);
+						reportSchedulerService.updateReport(sr);
+					} catch (Throwable e) {
+						log.info("Error executing report "+sr.getName(), e);
+						sr.setDone(true);
+						sr.setError(true);
+						String msg = e.toString();
+						if (msg.length() > 1000)
+							msg = msg.substring(0, 1000);
+						sr.setErrorMessage(msg);
+						reportSchedulerService.updateReport(sr);
+					} finally {
+						Security.nestedLogoff();
 					}
-					else if (sr.getUsers() == null || sr.getUsers().isEmpty())
-					{
-						sr.setUsers(new LinkedList<String>());
-						sr.getUsers().add("dummy");
-						reportService.remove(sr);
-					}
-					else
-					{
-						Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
-						String tenant = Security.getTenantName(tenantId);
-						Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
-						try {
-							JasperReport jasper = generateJasper(sr);
-							log.info("Executing report "+sr.getName());
-							execute (sr, jasper);
-							sr.setDone(true);
-							sr.setError(false);
-							sr.setErrorMessage(null);
-							reportSchedulerService.updateReport(sr);
-						} catch (Throwable e) {
-							log.info("Error executing report "+sr.getName(), e);
-							sr.setDone(true);
-							sr.setError(true);
-							String msg = e.toString();
-							if (msg.length() > 1000)
-								msg = msg.substring(0, 1000);
-							sr.setErrorMessage(msg);
-							reportSchedulerService.updateReport(sr);
-						} finally {
-							Security.nestedLogoff();
-						}
-						removeJasperFile();
-					}
+					removeJasperFile();
 				}
 				reportService.purgeExpiredReports();
 			}
@@ -220,6 +211,7 @@ public class ReportExecutorBean implements ReportExecutor {
 		Session session = sessionFactory.openSession();
 		try
 		{ 
+			SessionHolder.hibernateSession.set(session);
 			v.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
 			v.put("net.sf.jasperreports.subreport.runner.factory", "net.sf.jasperreports.engine.fill.JRContinuationSubreportRunnerFactory");
 			v.put("net.sf.jasperreports.awt.ignore.missing.font", "true");
@@ -320,12 +312,13 @@ public class ReportExecutorBean implements ReportExecutor {
 		        	out.close ();
 		        	sr.setXlsDocument(documentService.getReference().toString());
 		        	documentService.closeDocument();
-	        	} catch (Exception e) {
+	        	} catch (Throwable e) {
 	        		log.warn("Unable to generate XLS file");
 	        	}
 
 	        }
 		} finally {
+			SessionHolder.hibernateSession.remove();
 			documentService.closeDocument();
 			session.clear();
 			session.close();

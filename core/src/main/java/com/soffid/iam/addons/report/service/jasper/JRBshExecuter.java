@@ -1,4 +1,4 @@
-package com.soffid.iam.addons.report.service;
+package com.soffid.iam.addons.report.service.jasper;
 
 import java.util.Collection;
 
@@ -15,7 +15,7 @@ public class JRBshExecuter implements JRQueryExecuter{
 	}
 
 	public JRDataSource createDatasource() throws JRException {
-		return new SoffidJRDataSource(coll);
+		return new JRBshDataSource(coll);
 	}
 
 	public void close() {

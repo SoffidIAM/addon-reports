@@ -88,6 +88,15 @@
 							<overWrite>true</overWrite>
 							<outputDirectory>${project.build.directory}/test-classes</outputDirectory>
 						</artifactItem>
+						<artifactItem>
+							<groupId>${pom.groupId}</groupId>
+							<artifactId>meta</artifactId>
+							<version>${pom.version}</version>
+							<classifier>test-resource</classifier>
+							<type>zip</type>
+							<overWrite>true</overWrite>
+							<outputDirectory>${project.build.directory}/test-resources</outputDirectory>
+						</artifactItem>
 					</artifactItems>
 				</configuration>
 			</plugin>
@@ -161,7 +170,6 @@
 							<createDependencyReducedPom>false</createDependencyReducedPom>
 							<artifactSet>
 								<includes>
-									<include>net.sf.jasperreports:jasperreports</include>
 									<include>org.codehaus.groovy:groovy-all</include>
 									<include>com.google.code.maven-play-plugin.org.apache.commons:commons-javaflow</include>
 								</includes>
@@ -274,18 +282,18 @@
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-tomee</artifactId>
-			<version>3.0.0-beta-1</version>
+			<version>3.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-core</artifactId>
-			<version>3.0.0-beta-1</version>
+			<version>3.3.0</version>
 			<type>ejb</type>
 		</dependency>
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>iam-core</artifactId>
-			<version>3.0.0-beta-1</version>
+			<version>3.3.0</version>
 			<scope>test</scope>
 			<classifier>test-jar</classifier>
 			<type>jar</type>
@@ -384,6 +392,12 @@
 			<version>3.10.1</version>
 			<scope>compile</scope>
 		</dependency>
+        <dependency>
+            <groupId>com.lowagie</groupId>
+            <artifactId>itext</artifactId>
+            <version>2.1.7</version>
+            <scope>provided</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.soffid.iam.console</groupId>
 			<artifactId>dbtools</artifactId>
