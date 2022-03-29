@@ -380,7 +380,7 @@ public class WizardHandler extends Window {
 			inputField.setLabel(description);
 			inputField.afterCompose();
 			inputField.createField();
-			
+			inputField.runOnLoadTrigger();
 		} catch (Exception e) {
 		}
 	}
