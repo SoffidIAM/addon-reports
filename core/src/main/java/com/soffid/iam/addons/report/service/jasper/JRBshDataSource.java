@@ -56,9 +56,16 @@ public class JRBshDataSource implements JRSoffidDataSource {
 	public Map<String, Object> getFields() throws JRException {
 		try {
 			Map<String,Object> fields = new HashMap<>();
-			for (PropertyDescriptor pd: PropertyUtils.getPropertyDescriptors(current) ) {
-				final Object value = PropertyUtils.getProperty(current, pd.getName());
-				fields.put(pd.getName(), value);
+			if (current instanceof Map) {
+				Map<String,Object> m = (Map<String,Object>) current;
+				for (Map.Entry<String,Object> entry: m.entrySet()) {
+					fields.put(entry.getKey(), entry.getValue());
+				}
+			} else {
+				for (PropertyDescriptor pd: PropertyUtils.getPropertyDescriptors(current) ) {
+					final Object value = PropertyUtils.getProperty(current, pd.getName());
+					fields.put(pd.getName(), value);
+				}
 			}
 			return fields;
 		} catch (Exception e) {
