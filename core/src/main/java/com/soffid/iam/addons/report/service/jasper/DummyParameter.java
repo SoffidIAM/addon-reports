@@ -130,7 +130,7 @@ public class DummyParameter implements JRValueParameter {
 			return Base64.decode(value);
 		else if (Boolean.class.isAssignableFrom( javaType) ||
 				boolean.class.isAssignableFrom(javaType))
-			return Boolean.getBoolean(value);
+			return Boolean.parseBoolean(value);
 		else if (Calendar.class.isAssignableFrom( javaType)) {
 			Calendar c = Calendar.getInstance();
 			c.setTime(Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(value))));
