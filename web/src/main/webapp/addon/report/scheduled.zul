@@ -29,7 +29,7 @@
   value: name
 			]]></attribute>
 			</datatable>
-			<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('network:all:create')}" >
+			<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('report:schedule')}" >
 				<div class="deleteButton" onClick="ref:frame.deleteSelected" visible="false">-</div>
 				<div class="addButton" onClick="ref:frame.newReport">+</div>
 			</div>
