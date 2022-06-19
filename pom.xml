@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>com.soffid</groupId>
-		<artifactId>template</artifactId>
-		<version>1.0.0</version>
-	</parent>
 	<groupId>com.soffid.iam.addon.report</groupId>
 	<artifactId>report</artifactId>
 	<packaging>pom</packaging>
@@ -237,6 +232,35 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>soffid-open</id>
+			<url>https://download.soffid.com/maven</url>
+		</pluginRepository>
+	</pluginRepositories>
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
+		<repository>
+			<id>soffid-open</id>
+			<url>https://download.soffid.com/maven</url>
+		</repository>
+	</repositories>
+  <distributionManagement>
+    <repository>
+      <uniqueVersion>true</uniqueVersion>
+      <id>soffid-open</id>
+      <name>Soffid Maven repository</name>
+      <url>${soffid.deploy.url}</url>
+    </repository>
+    <site>
+      <id>soffid-open-site</id>
+      <name>Soffid Maven site repository</name>
+      <url>${soffid.deploy.site.url}</url>
+    </site>
+  </distributionManagement>
 	<properties>
 		<console.version>2.0.2</console.version>
 	</properties>
