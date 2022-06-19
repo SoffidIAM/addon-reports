@@ -60,7 +60,7 @@ public class JRSqlDataSource implements JRSoffidDataSource {
 	public Object getFieldValue(JRField jrField) throws JRException {
 		try {
 			for (int i = 0; i < alias.getColumnCount(); i++) {
-				if (alias.getColumnName(i+1).equalsIgnoreCase(jrField.getName())) {
+				if (alias.getColumnLabel(i+1).equalsIgnoreCase(jrField.getName())) {
 					return iterator.getObject(i+1);
 				}
 			}
@@ -75,7 +75,7 @@ public class JRSqlDataSource implements JRSoffidDataSource {
 		try {
 			Map<String, Object> r = new HashMap<>(); 
 			for (int i = 0; i < alias.getColumnCount(); i++) {
-				r.put(alias.getColumnName(i+1), iterator.getObject(i+1));
+				r.put(alias.getColumnLabel(i+1), iterator.getObject(i+1));
 			}
 			return r;
 		} catch (SQLException e) {
@@ -90,7 +90,7 @@ public class JRSqlDataSource implements JRSoffidDataSource {
 		try {
 			if (alias != null) 
 				for (int i = 0; i < alias.getColumnCount(); i++) {
-					l.add(alias.getColumnName(i+1));
+					l.add(alias.getColumnLabel(i+1));
 				}
 			return l;
 		} catch (SQLException e) {

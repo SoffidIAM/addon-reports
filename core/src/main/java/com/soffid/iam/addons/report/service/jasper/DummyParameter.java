@@ -3,6 +3,7 @@ package com.soffid.iam.addons.report.service.jasper;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -133,11 +134,28 @@ public class DummyParameter implements JRValueParameter {
 			return Boolean.parseBoolean(value);
 		else if (Calendar.class.isAssignableFrom( javaType)) {
 			Calendar c = Calendar.getInstance();
-			c.setTime(Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(value))));
+			try {
+				c.setTime( new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(value));
+			} catch (ParseException e) {
+				try {
+					c.setTime( new SimpleDateFormat("dd-MM-yyyy'T'HH:mm:ss").parse(value));
+				} catch (ParseException e1) {
+					throw new RuntimeException("Unable to parser date "+value,e1);
+				}
+			}
 			return c;
 		}
-		else if (Date.class.isAssignableFrom( javaType))
-			return Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(value)));
+		else if (Date.class.isAssignableFrom( javaType)) {
+			try {
+				return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(value);
+			} catch (ParseException e) {
+				try {
+					return new SimpleDateFormat("dd-MM-yyyy'T'HH:mm:ss").parse(value);
+				} catch (ParseException e1) {
+					throw new RuntimeException("Unable to parser date "+value,e1);
+				}
+			}
+		}
 		else if (Double.class.isAssignableFrom( javaType) ||
 				double.class.isAssignableFrom(javaType))
 			return new Double(value);

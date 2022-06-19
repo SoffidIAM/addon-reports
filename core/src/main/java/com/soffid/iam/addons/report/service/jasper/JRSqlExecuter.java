@@ -23,6 +23,7 @@
  */
 package com.soffid.iam.addons.report.service.jasper;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.PreparedStatement;
@@ -84,7 +85,7 @@ public class JRSqlExecuter extends JRAbstractQueryExecuter
 					if (value == null)
 						q.setNull(position, getSqlType(p.getValueClass()));
 					else
-						q.setObject(position, p.getValue(), getSqlType(p.getValueClass()));
+						setParameter(q, position, p);
 					position++;
 				}
 				return new JRSqlDataSource(q);
@@ -93,6 +94,43 @@ public class JRSqlExecuter extends JRAbstractQueryExecuter
 			}
 		}
 		return null;
+	}
+
+
+	public void setParameter(PreparedStatement q, int position, JRValueParameter p) throws SQLException {
+		Class<?> javaType = p.getValueClass();
+		if (String.class.isAssignableFrom( javaType))
+			q.setString(position, p.getValue().toString());
+		else if (BigDecimal.class.isAssignableFrom( javaType))
+			q.setBigDecimal(position, (BigDecimal) p.getValue());
+		else if (BigInteger.class.isAssignableFrom( javaType))
+			q.setLong(position, ((BigInteger) p.getValue()).longValue());
+		else if (byte[].class.isAssignableFrom( javaType))
+			q.setBinaryStream(position, new ByteArrayInputStream((byte[]) p.getValue()));
+		else if (Boolean.class.isAssignableFrom( javaType) ||
+				boolean.class.isAssignableFrom(javaType))
+			q.setBoolean(position, (Boolean) p.getValue());
+		else if (Calendar.class.isAssignableFrom( javaType))
+			q.setDate(position, new java.sql.Date(((Calendar) p.getValue()).getTime().getTime()));
+		else if (Date.class.isAssignableFrom( javaType))
+			q.setDate(position, new java.sql.Date(((Date) p.getValue()).getTime()));
+		else if (Double.class.isAssignableFrom( javaType) ||
+				double.class.isAssignableFrom(javaType))
+			q.setDouble(position, ((Double) p.getValue()).doubleValue());
+		else if (Float.class.isAssignableFrom( javaType) ||
+				float.class.isAssignableFrom(javaType))
+			q.setFloat(position, ((Float) p.getValue()).floatValue());
+		else if (Integer.class.isAssignableFrom( javaType) ||
+				int.class.isAssignableFrom(javaType))
+			q.setInt(position, ((Integer) p.getValue()).intValue());
+		else if (Long.class.isAssignableFrom( javaType) ||
+				long.class.isAssignableFrom(javaType))
+			q.setLong(position, ((Long) p.getValue()).longValue());
+		else if (Short.class.isAssignableFrom( javaType) ||
+				short.class.isAssignableFrom(javaType))
+			q.setShort(position, ((Short) p.getValue()).shortValue());
+		else 
+			q.setObject(position, p.getValue());
 	}
 
 
