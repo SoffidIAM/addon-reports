@@ -31,7 +31,7 @@
   value: name
 			]]></attribute>
 			</datatable>
-			<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('network:all:create')}" >
+			<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('report:admin')}" >
 				<div class="deleteButton" onClick="ref:frame.deleteSelected" visible="false">-</div>
 				<div class="addButton" onClick="ref:frame.upload">+</div>
 			</div>
@@ -69,6 +69,7 @@
 			<label value="${msg['report.acl']}"></label>
 			
 			<datatable dataPath="/acl" id="aclGrid"
+				onSelect="ref:frame.multiSelect"
 				onMultiSelect="ref:frame.multiSelect">
 				<attribute name="columns"> <![CDATA[
 - name: ${msg['acl.type'] }
@@ -77,7 +78,7 @@
   value: objectName
   				]]></attribute>
   			</datatable>
-			<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('network:all:create')}" >
+			<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('report:admin')}" >
 				<div class="deleteButton" onClick="ref:frame.deleteSelected" visible="false">-</div>
 				<div class="addButton" onClick="ref:frame.addIdentity" onAddIdentity="ref:frame.addIdentity2">+</div>
 			</div>
