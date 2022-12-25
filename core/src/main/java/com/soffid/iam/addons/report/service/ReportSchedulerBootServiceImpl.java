@@ -1,11 +1,16 @@
 package com.soffid.iam.addons.report.service;
 
+import java.net.URL;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.soffid.iam.addons.report.service.ejb.ReportSchedulerBean;
+import com.soffid.iam.api.Configuration;
 import com.soffid.iam.api.Tenant;
 
 public class ReportSchedulerBootServiceImpl extends
@@ -29,6 +34,36 @@ public class ReportSchedulerBootServiceImpl extends
 
 	@Override
 	protected void handleTenantBoot(Tenant tenant) throws Exception {
+		URL url = getClass().getResource("/com/soffid/iam/addons/report/service/ReportSchedulerServiceImpl.class");
+        if (url.getProtocol().equals("jar")) { //$NON-NLS-1$
+			Configuration cfg = getConfigurationService().findParameterByNameAndNetworkName("addon.report.reports", null);
+			if (cfg == null || ! cfg.getValue().equals("1")) {
+				if (cfg == null) {
+					cfg = new Configuration();
+					cfg.setName("addon.report.reports");
+					cfg.setDescription("Standard reports library version");
+					cfg.setValue("1");
+					getConfigurationService().create(cfg);
+				} else {
+					cfg.setValue("1");
+					getConfigurationService().update(cfg);
+				}
+				String jar = url.getFile();
+				int i = jar.lastIndexOf("!"); //$NON-NLS-1$
+				if (i >= 0)
+					jar = jar.substring(0, i);
+				System.out.println(jar);
+				ZipInputStream zip = new ZipInputStream(new URL(jar).openStream());
+				for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+					if (entry.getName().endsWith(".jasper")) {
+						getReportService().upload(zip);
+					}
+				}
+				
+			}
+        }
+
+
 	}
 
 }

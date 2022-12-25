@@ -4,6 +4,7 @@
 <?component name="input_criteri" macro-uri="/comu/input_criteri.zul"?>
 <?component name="input_dada" macro-uri="/comu/input_dada.zul"?>
 <?component name="input_etiqueta" macro-uri="/comu/input_etiqueta.zul"?>
+<?component name="scheduled" macro-uri="/addon/report/scheduled.zul"?>
 <frame xmlns:h="http://www.w3.org/1999/xhtml" mold="div" style="position: relative" 
 	use="com.soffid.iam.addons.report.web.ReportHandler" id="frame">
 
@@ -25,7 +26,8 @@
 				</tabs>
 				<tabpanels>
 					<tabpanel><embed src="/addon/report/executed.zul" id="executed"/></tabpanel>
-					<tabpanel if="${soffid:isUserInRole('report:schedule')}" fulfill="schedule_tab.onSelect"><embed src="/addon/report/scheduled.zul" id="scheduled"/></tabpanel>
+					<tabpanel if="${soffid:isUserInRole('report:schedule')}" fulfill="schedule_tab.onSelect">
+						<scheduled id="scheduled"/></tabpanel>
 					<tabpanel if="${soffid:isUserInRole('report:admin')}" fulfill="uploaded_tab.onSelect"><embed src="/addon/report/uploaded.zul" id="uploaded"/></tabpanel>
 				</tabpanels>
 			</tabbox>

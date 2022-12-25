@@ -25,6 +25,7 @@ import com.soffid.iam.web.popup.IdentityHandler;
 import es.caib.seycon.ng.exception.InternalErrorException;
 import es.caib.zkib.binder.BindContext;
 import es.caib.zkib.component.DataModel;
+import es.caib.zkib.component.DataTable;
 import es.caib.zkib.datasource.CommitException;
 import es.caib.zkib.datasource.XPathUtils;
 
@@ -40,13 +41,6 @@ public class ScheduledHandler extends FrameHandler {
 
 	@Override
 	public void afterCompose() {
-		if (reportIdString != null)
-		{
-		        ExecutedReport r = new  com.soffid.iam.addons.report.api.ExecutedReport();
-		        r.setId( Long.parseLong (reportIdString) );
-		        Events.postEvent("onStart", getFellow("wizardEmbed").getFellow("waitingForReport"), r);
-		}
-
 	}
 
 	@Override
@@ -93,11 +87,13 @@ public class ScheduledHandler extends FrameHandler {
 	public void acceptDetails(Event event) throws CommitException {
 		getModel().commit();
 		getFellow("detailWindow").setVisible(false);
+		((DataTable)getListbox()).setSelectedIndex(-1);
 	}
 
 	public void cancelDetails(Event event) throws CommitException {
 		getModel().refresh();
 		getFellow("detailWindow").setVisible(false);
+		((DataTable)getListbox()).setSelectedIndex(-1);
 	}
 	
 	@Override

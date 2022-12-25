@@ -20,6 +20,7 @@ import com.soffid.iam.addons.report.service.ReportSchedulerBootService;
 import com.soffid.iam.addons.report.service.ReportService;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
 import com.soffid.iam.api.Configuration;
+import com.soffid.iam.api.Tenant;
 import com.soffid.iam.doc.api.DocumentReference;
 import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
@@ -68,7 +69,7 @@ public class Test extends AbstractHibernateTest {
 		applicationBoot.consoleBoot();
 		ReportSchedulerBootService reportBoot = ( ReportSchedulerBootService) context.getBean(ReportSchedulerBootService.SERVICE_NAME);
 		reportBoot.consoleBoot();
-		
+		reportBoot.tenantBoot(new Tenant("master", "Master", true));
 	}
 
 	private void config(String code, String value) throws InternalErrorException {

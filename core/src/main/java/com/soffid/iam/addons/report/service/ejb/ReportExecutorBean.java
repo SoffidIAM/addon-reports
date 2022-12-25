@@ -64,6 +64,7 @@ import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporterParameter;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.export.CsvExporterConfiguration;
@@ -73,6 +74,8 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleWriterExporterOutput;
 import net.sf.jasperreports.export.SimpleXlsExporterConfiguration;
 import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
+import net.sf.jasperreports.export.SimpleXlsxExporterConfiguration;
+import net.sf.jasperreports.export.SimpleXlsxReportConfiguration;
 
 @Singleton(name="ReportExecutorBean")
 @Local({ReportExecutor.class})
@@ -291,13 +294,13 @@ public class ReportExecutorBean implements ReportExecutor {
 	        	try {
 		        	documentService.createDocument("application/xls", sr.getName()+".xls", "report");
 		        	out = new DocumentOutputStream(documentService);
-		        	JRXlsExporter exporterXls = new JRXlsExporter(); 
-		        	SimpleXlsExporterConfiguration ec = new SimpleXlsExporterConfiguration();
+		        	JRXlsxExporter exporterXls = new JRXlsxExporter(); 
+		        	SimpleXlsxExporterConfiguration ec = new SimpleXlsxExporterConfiguration();
 		        	ec.setMetadataAuthor("Soffid");
 		        	ec.setMetadataTitle(sr.getName());
 		        	exporterXls.setConfiguration(ec);
 		        	
-		        	SimpleXlsReportConfiguration rc = new SimpleXlsReportConfiguration();
+		        	SimpleXlsxReportConfiguration rc = new SimpleXlsxReportConfiguration();
 		        	rc.setRemoveEmptySpaceBetweenColumns(true);
 		        	rc.setRemoveEmptySpaceBetweenRows(true);
 		        	rc.setWhitePageBackground(true);
