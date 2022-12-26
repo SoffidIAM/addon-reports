@@ -19,6 +19,7 @@ import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.service.ReportSchedulerBootService;
 import com.soffid.iam.addons.report.service.ReportService;
 import com.soffid.iam.addons.report.service.ejb.ReportExecutorBean;
+import com.soffid.iam.addons.report.service.timer.ReportExecutorTimer;
 import com.soffid.iam.api.Configuration;
 import com.soffid.iam.api.Tenant;
 import com.soffid.iam.doc.api.DocumentReference;
@@ -125,9 +126,8 @@ public class Test extends AbstractHibernateTest {
 		for (int i = 0; !execution.isDone() && i < 100; i++)
 		{
 			System.out.println ("Waiting for report");
-			ReportExecutorBean rb = new ReportExecutorBean();
-			rb.connectServices();
-			rb.timeOutHandler(null);
+			ReportExecutorTimer rb = new ReportExecutorTimer();
+			rb.run();
 			execution = reportSvc.getExecutedReportStatus(execution.getId());
 		}
 		
