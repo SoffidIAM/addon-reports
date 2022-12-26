@@ -20,6 +20,7 @@ import com.soffid.iam.ServiceLocator;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.service.ReportSchedulerService;
 import com.soffid.iam.addons.report.service.ReportService;
+import com.soffid.iam.addons.report.service.timer.ReportSchedulerTimer;
 import com.soffid.iam.api.Configuration;
 import com.soffid.iam.service.ConfigurationService;
 
@@ -49,46 +50,11 @@ public class ReportSchedulerBean {
 	@Timeout	
 	@javax.ejb.TransactionAttribute(value=javax.ejb.TransactionAttributeType.REQUIRES_NEW)
 	public void timeOutHandler(Timer timer) throws Exception {
-		if (isMaster ())
-		{
-			Date next = null;
-			Date now = new Date();
-			try
-			{
-				ReportSchedulerService reportSchedulerService = (ReportSchedulerService) ServiceLocator.instance().getService( ReportSchedulerService.SERVICE_NAME );
-				ReportService reportService = (ReportService) ServiceLocator.instance().getService( ReportService.SERVICE_NAME );
-				for (ScheduledReport sr : reportSchedulerService .getScheduledReport())
-				{
-					if (sr.getNextExecution().before(now))
-					{
-						reportSchedulerService.startReport(sr);
-//						reportExecutor.newReportCreated();
-					}
-					else if (next == null || next.after(sr.getNextExecution()))
-						next = sr.getNextExecution();
-				}
-			} catch (Throwable e) {
-				log.warn("Error on report scheduler", e);
-			}
-		}
+		new ReportSchedulerTimer().run();
 	}
 
 	public ReportSchedulerBean ()
 	{
 		
-	}
-	
-	boolean isMaster () throws InternalErrorException, UnknownHostException
-	{
-		ConfigurationService svc = ServiceLocator.instance().getConfigurationService();
-		Configuration cfg = svc.findParameterByNameAndNetworkName("addon.report.server", null);
-		if (cfg != null)
-		{
-			String [] split = cfg.getValue().isEmpty() ? new String[0]: cfg.getValue().split(" ");
-			return split.length == 2 && 
-					split[0].equals(InetAddress.getLocalHost().getHostName());
-		}
-		else
-			return false;
 	}
 }
