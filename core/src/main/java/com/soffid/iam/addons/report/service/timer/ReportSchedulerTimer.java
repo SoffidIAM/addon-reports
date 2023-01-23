@@ -57,7 +57,7 @@ public class ReportSchedulerTimer implements Runnable {
 		
 	}
 	
-	boolean isMaster () throws InternalErrorException, UnknownHostException
+	public boolean isMaster () throws InternalErrorException, UnknownHostException
 	{
 		ConfigurationService svc = ServiceLocator.instance().getConfigurationService();
 		Configuration cfg = svc.findParameterByNameAndNetworkName("addon.report.server", null);
@@ -69,5 +69,19 @@ public class ReportSchedulerTimer implements Runnable {
 		}
 		else
 			return false;
+	}
+
+
+	Date searchNextScheduledReport() throws InternalErrorException {
+		Date first = null;
+		ReportSchedulerService svc = (ReportSchedulerService) ServiceLocator.instance().getService(ReportSchedulerService.SERVICE_NAME);
+		for (ScheduledReport sr : svc.getScheduledReport())
+		{
+			if (first == null || 
+					sr.getNextExecution() != null &&
+					sr.getNextExecution().before(first))
+				first = sr.getNextExecution();
+		}
+		return first;
 	}
 }

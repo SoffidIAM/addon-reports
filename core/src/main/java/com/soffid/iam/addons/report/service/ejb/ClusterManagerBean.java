@@ -31,10 +31,10 @@ public class ClusterManagerBean  {
 	
 	@PostConstruct
 	public void init() throws Exception {
-		log.info("Started report bean");
 		if ("true".equals(System.getProperty("soffid.reportscheduler.disabled"))) {
 			log.info("Report scheduler is disabled in this node");
 		} else {
+			log.info("Started report cluster manager bean");
 			context.getTimerService().createTimer(60000, 60000, "Cluster manager");
 		}
 	}

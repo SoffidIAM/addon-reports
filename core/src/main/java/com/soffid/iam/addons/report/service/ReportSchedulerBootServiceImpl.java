@@ -10,8 +10,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import com.soffid.iam.addons.report.service.ejb.ReportSchedulerBean;
+import com.soffid.iam.addons.report.service.timer.ReportAddonTimer;
 import com.soffid.iam.api.Configuration;
 import com.soffid.iam.api.Tenant;
+import com.soffid.iam.sync.SoffidApplication;
+import com.soffid.iam.sync.jetty.JettyServer;
+import com.soffid.iam.utils.ConfigurationCache;
 
 public class ReportSchedulerBootServiceImpl extends
 		ReportSchedulerBootServiceBase implements  ApplicationContextAware {
@@ -20,6 +24,10 @@ public class ReportSchedulerBootServiceImpl extends
 
 	@Override
 	protected void handleSyncServerBoot() throws Exception {
+		if ("syncserver".equals(ConfigurationCache.getMasterProperty("addon.report.engine"))) {
+			SoffidApplication.getJetty(). 
+			publish(getReportRunnerService(), ReportRunnerService.REMOTE_PATH, "SEU_CONSOLE");
+		}
 	}
 
 	@Override

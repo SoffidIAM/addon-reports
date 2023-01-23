@@ -43,8 +43,10 @@ public class ReportSchedulerBean {
 	
 	@PostConstruct
 	public void init() throws Exception {
-		log.info("Started report scheduler bean");
-		context.getTimerService().createTimer(120000, 120000, "Schedule report");
+		if (! "true".equals(System.getProperty("soffid.reportscheduler.disabled"))) {
+			log.info("Started report scheduler bean");
+			context.getTimerService().createTimer(120000, 120000, "Schedule report");
+		}
 	}
 
 	@Timeout	

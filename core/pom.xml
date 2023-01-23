@@ -410,6 +410,12 @@
 			<version>7.0</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.soffid.iam.sync</groupId>
+			<artifactId>syncserver</artifactId>
+			<version>3.3.0</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 </project>
 

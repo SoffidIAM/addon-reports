@@ -9,7 +9,7 @@ import es.caib.seycon.ng.servei.ApplicationBootService;
 
 @Service
 @Description ("Starts the scheduler and executor threads")
-@Depends({ReportSchedulerService.class, DocumentService.class, ReportService.class})
+@Depends({ReportSchedulerService.class, DocumentService.class, ReportService.class, ReportRunnerService.class})
 public class ReportSchedulerBootService extends ApplicationBootService {
 
 }

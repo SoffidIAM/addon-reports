@@ -41,13 +41,14 @@
 
 	<window visible="false" title="" id="detailWindow" width="60em" 
 		onClose="self.setVisible(false); event.stopPropagation(); model.refresh()" closable="true">
-		<form dataPath="/uploaded/listbox:/" width="100%" id="detailForm" style="padding:8px">
-			<div width="100%">
-				<label value="${msg['report.name']}" style="width: 40%; display: inline-block"/>
-				<textbox bind="@name" width="55%"/>
+		<form2 dataPath="/uploaded/listbox:/" width="100%" id="detailForm" style="padding:8px">
+			<div>
+				<customfield3 label="${msg['report.name']}" bind="@name" style="width: calc(100% - 150px); display: inline-block; vertical-align: middle"/>
+				<pager datatable="../listbox" style="display: inline-block; margin-left: 30px"/>
 			</div>
+			
 
-			<label value="${msg['report.parameters']}"></label>
+			<label value="${msg['report.parameters']}" sclass="label" style="display: block; margin-top: 40px"></label>
 			<grid dataPath="/parameters" id="paramGrid">
 				<columns>
 					<column label="${msg['parameter.name'] }"/>
@@ -66,7 +67,7 @@
 			</grid>
 
 
-			<label value="${msg['report.acl']}"></label>
+			<label value="${msg['report.acl']}" sclass="label" style="display: block; margin-top: 40px"></label>
 			
 			<datatable dataPath="/acl" id="aclGrid"
 				onSelect="ref:frame.multiSelect"
@@ -86,6 +87,6 @@
 				<button image="/img/save-r.svg" onClick="ref:frame.apply" label="${msg['accept']}"></button>
 				<button image="/img/undo-r.svg" onClick="ref:frame.undo" label="${msg['cancel']}"></button>
 			</div>
-		</form>
+		</form2>
 	</window>
 </frame>

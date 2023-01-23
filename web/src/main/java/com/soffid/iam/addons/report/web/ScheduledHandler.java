@@ -86,6 +86,7 @@ public class ScheduledHandler extends FrameHandler {
 
 	public void acceptDetails(Event event) throws CommitException {
 		getModel().commit();
+		getModel().refresh();
 		getFellow("detailWindow").setVisible(false);
 		((DataTable)getListbox()).setSelectedIndex(-1);
 	}
