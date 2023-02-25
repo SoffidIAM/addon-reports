@@ -66,6 +66,8 @@ public class ReportAddonTimer implements Runnable {
 					for (Tenant tenant: ServiceLocator.instance().getTenantService().listTenants()) {
 						Security.nestedLogin(tenant.getName(),"-", Security.ALL_PERMISSIONS);
 						try {
+							if (!finished)
+								cluster.run();
 							Date next = null;
 							try {
 								next = scheduler.searchNextScheduledReport();
@@ -78,6 +80,10 @@ public class ReportAddonTimer implements Runnable {
 						} finally {
 							Security.nestedLogoff();
 						}
+						if (!finished)
+							executor.run();
+						if (!finished)
+							scheduler.run();
 					}
 				} catch (Exception e) {
 					log.warn("Error processing reports", e);
@@ -92,12 +98,6 @@ public class ReportAddonTimer implements Runnable {
 					} catch (InterruptedException e) {
 					} 
 				}
-				if (!finished)
-					cluster.run();
-				if (!finished)
-					executor.run();
-				if (!finished)
-					scheduler.run();
 			}
 		} finally {
 			started = false;
