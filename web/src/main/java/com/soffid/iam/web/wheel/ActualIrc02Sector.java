@@ -32,31 +32,37 @@ public class ActualIrc02Sector {
 		return ! reportService.findScheduledReports(null).isEmpty();
 	}
 	
-	public void activate() {
-		Missatgebox.avis(Labels.getLabel("report.wheel.explanation"), e -> {
-			for (Report rep: reportService.findReports("Risk report", true)) {
-				ScheduledReport r = new ScheduledReport();
-				r.setCreationDate(new Date());
-				r.setCronDayOfMonth("*");
-				r.setCronDayOfWeek("1");
-				r.setCronHour("6");
-				r.setCronMinute("0");
-				r.setCronMonth("*");
-				r.setName("Weekly risk report");
-				r.setScheduled(true);
-				r.setTarget(new LinkedList<>());
-				r.getTarget().add("SOFFID_ADMIN@soffid");
-				r.setReportId(rep.getId());
-				r.setParams(new LinkedList<>());
-				r.getParams().add(new ParameterValue(null, "all", ParameterType.BOOLEAN_PARAM , true));
-				r.getParams().add(new ParameterValue(null, "forbiddenRisk", ParameterType.BOOLEAN_PARAM, true));
-				r.getParams().add(new ParameterValue(null, "highRisk", ParameterType.BOOLEAN_PARAM, true));
-				r.getParams().add(new ParameterValue(null, "app", ParameterType.STRING_PARAM, ""));
-				r.getParams().add(new ParameterValue(null, "lowRisk", ParameterType.BOOLEAN_PARAM, true));
-				r = reportService.create(r);
-				Application.jumpTo("/addon/report/report.zul?wizard=openSchedule&id="+r.getId());
-				break;
-			}
-		});
+	public void activate() throws InternalErrorException, NamingException {
+		if (!isDone()) {
+			Missatgebox.confirmaOK_CANCEL(Labels.getLabel("report.wheel.explanation"), e -> {
+				if (e.getName().equals("onOK")) {
+					for (Report rep: reportService.findReports("Risk report", true)) {
+						ScheduledReport r = new ScheduledReport();
+						r.setCreationDate(new Date());
+						r.setCronDayOfMonth("*");
+						r.setCronDayOfWeek("1");
+						r.setCronHour("6");
+						r.setCronMinute("0");
+						r.setCronMonth("*");
+						r.setName("Weekly risk report");
+						r.setScheduled(true);
+						r.setTarget(new LinkedList<>());
+						r.getTarget().add("SOFFID_ADMIN@soffid");
+						r.setReportId(rep.getId());
+						r.setParams(new LinkedList<>());
+						r.getParams().add(new ParameterValue(null, "all", ParameterType.BOOLEAN_PARAM , true));
+						r.getParams().add(new ParameterValue(null, "forbiddenRisk", ParameterType.BOOLEAN_PARAM, true));
+						r.getParams().add(new ParameterValue(null, "highRisk", ParameterType.BOOLEAN_PARAM, true));
+						r.getParams().add(new ParameterValue(null, "app", ParameterType.STRING_PARAM, ""));
+						r.getParams().add(new ParameterValue(null, "lowRisk", ParameterType.BOOLEAN_PARAM, true));
+						r = reportService.create(r);
+						Application.jumpTo("/addon/report/report.zul?wizard=openSchedule&id="+r.getId());
+						return;
+					}
+				}
+			});
+			
+		}
+		Application.jumpTo("/addon/report/report.zul");
 	}
 }
