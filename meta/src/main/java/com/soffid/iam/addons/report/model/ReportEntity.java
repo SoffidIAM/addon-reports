@@ -1,6 +1,7 @@
 package com.soffid.iam.addons.report.model;
 
 import java.util.Collection;
+import java.util.Date;
 
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.model.TenantEntity;
@@ -11,6 +12,7 @@ import com.soffid.mda.annotation.Entity;
 import com.soffid.mda.annotation.ForeignKey;
 import com.soffid.mda.annotation.Identifier;
 import com.soffid.mda.annotation.Index;
+import com.soffid.mda.annotation.Nullable;
 
 import es.caib.seycon.ng.model.GrupEntity;
 import es.caib.seycon.ng.model.RolEntity;
@@ -28,6 +30,12 @@ public class ReportEntity {
 	
 	@Column(name="REP_NAME")
 	String name;
+	
+	@Nullable @Column(name="REP_AUTHOR")
+	String author;
+	
+	@Nullable @Column(name="REP_DATE")
+	Date date;
 	
 	@Column(name="REP_DOCID", length=128)
 	String docId;

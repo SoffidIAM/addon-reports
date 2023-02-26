@@ -29,6 +29,12 @@
 			<attribute name="columns"><![CDATA[
 - name: "${msg['report.name']}"
   value: name
+- name: "${c:l('auditoria.zul.Autor')}"
+  value: author
+- name: "${c:l('com.soffid.iam.api.Audit.calendar') }"
+  value: date
+  template: #{date_datetime}
+  className: datetimeColumn
 			]]></attribute>
 			</datatable>
 			<div width="100%" style="text-align: right"  if="${soffid:isUserInRole('report:admin')}" >

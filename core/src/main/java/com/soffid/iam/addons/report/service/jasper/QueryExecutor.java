@@ -168,6 +168,8 @@ public class QueryExecutor {
 
 		Collection<ReportParameter> oldParameters = r.getParameters();
 		r.setName(jr.getName());
+		r.setAuthor(Security.getCurrentUser());
+		r.setDate(new Date());
         List<ReportParameter> rp = new LinkedList<ReportParameter>();
         long order = 0;
         for (JRParameter jp: jr.getParameters())
