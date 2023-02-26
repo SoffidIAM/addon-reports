@@ -171,8 +171,6 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 	}
 
 	private boolean canView(ExecutedReportEntity report) throws InternalErrorException {
-		if (Security.isUserInRole("report:admin"))
-			return true;
 		User user = getUserService().getCurrentUser();
 		AccessControlList acl = new AccessControlList();
 		
@@ -191,7 +189,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		ExecutedReportEntity ere = getExecutedReportEntityDao().load(reportId);
 		if (ere == null)
 			return null;
-		if ( ! canView(ere))
+		if ( !Security.isUserInRole("report:admin") && ! canView(ere))
 			return null;
 		
 		return getExecutedReportEntityDao().toExecutedReport(ere);
@@ -304,7 +302,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		ExecutedReportEntity ere = getExecutedReportEntityDao().load(report.getId());
 		if (ere == null)
 			return ;
-		if ( ! canView(ere))
+		if ( !Security.isUserInRole("report:admin") && ! canView(ere))
 			return ;
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -451,8 +449,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 					ExecutedReportTargetEntity target = it.next ();
 					if (target.getUser() != null && target.getUser().getId().equals(u.getId()))
 					{
-//						getExecutedReportTargetEntityDao().remove(target);
-						target.setReport(null);
+						getExecutedReportTargetEntityDao().remove(target);
 						it.remove();
 					}
 				}
