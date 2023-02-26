@@ -39,10 +39,7 @@
 	<window visible="false" title="" id="detailWindow" width="60em" 
 		closable="false">
 		<form dataPath="/scheduled/listbox:/" width="100%" id="detailForm" style="padding:8px">
-			<customfield3 label="${msg['report.name']}" required="true" bind="@name" readonly="true" dataType="STRING"/>
-
-			<label value="${msg['schedule'] }"/> 
-
+			<customfield3 label="${msg['report.name']}" required="true" bind="@reportName" disabled="true" readonly="true" dataType="STRING"/>
 			<customfield3 label="${msg['schedule'] }" required="true" maxlength="100" bind="@name" id="scheduleTextbox" dataType="STRING"/>
 			<customfield3 label="${msg['month']}" required="true" id="schMonth" maxlength="20" bind="@cronMonth" dataType="STRING"/>
 			<customfield3 label="${msg['day']}" required="true" id="schDayOfMonth" maxlength="20" bind="@cronDayOfMonth" dataType="STRING"/>

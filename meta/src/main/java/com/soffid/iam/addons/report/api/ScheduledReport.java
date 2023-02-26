@@ -13,6 +13,8 @@ public class ScheduledReport {
 	@Nullable  Long id;
 	Long reportId;
 	String name;
+	@Nullable
+	String reportName;
 	Collection<String> target;
 	@Nullable Collection<ParameterValue> params;
 	@Attribute(defaultValue="false")

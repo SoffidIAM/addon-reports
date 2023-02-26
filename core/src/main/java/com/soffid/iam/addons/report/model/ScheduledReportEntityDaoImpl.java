@@ -36,6 +36,7 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 		}
 		target.setTarget(users);
 		target.setReportId(source.getReport().getId());
+		target.setReportName(source.getReport().getName());
 		
 		target.setParams(getScheduledReportParameterEntityDao().toParameterValueList(source.getParameters()));
 
