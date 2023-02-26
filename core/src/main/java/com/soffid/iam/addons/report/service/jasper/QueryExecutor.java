@@ -9,6 +9,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import com.soffid.iam.doc.exception.DocumentBeanException;
 import com.soffid.iam.doc.service.DocumentService;
 import com.soffid.iam.utils.Security;
 
+import es.caib.seycon.ng.comu.TypeEnumeration;
 import es.caib.seycon.ng.exception.InternalErrorException;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRParameter;
@@ -167,6 +169,7 @@ public class QueryExecutor {
 		Collection<ReportParameter> oldParameters = r.getParameters();
 		r.setName(jr.getName());
         List<ReportParameter> rp = new LinkedList<ReportParameter>();
+        long order = 0;
         for (JRParameter jp: jr.getParameters())
         {
         	if ( jp.isForPrompting() && ! jp.isSystemDefined())
@@ -176,6 +179,8 @@ public class QueryExecutor {
         		boolean found = false;
         		for (ReportParameter existingParameter: oldParameters)
         		{
+        			if (existingParameter.getOrder() != null && existingParameter.getOrder().longValue() >= order)
+        				order = existingParameter.getOrder().longValue() + 1;
             		log.info("Is "+existingParameter.getName()+"?");
         			if (existingParameter.getName().equals(jp.getName()))
         			{
@@ -184,31 +189,25 @@ public class QueryExecutor {
     		        	if (jp.getDescription() != null)
     		        		existingParameter.setDescription(jp.getDescription());
         				rp.add(existingParameter);
-        				ParameterType desired = guessParameterType(jp);
-        				ParameterType existing = existingParameter.getType();
-        				if (desired.equals(existing) ||
-        						existing == ParameterType.USER_PARAM ||
-        						existing == ParameterType.DISPATCHER_PARAM ||
-        						existing == ParameterType.GROUP_PARAM || 
-        						existing == ParameterType.ROLE_PARAM ||
-        						existing == ParameterType.IS_PARAM)
-        				{
-            				log.info("Keep data type");
-        					// Compatibles types, nothing to do
+        				existingParameter.setOrder(order ++);
+        				String dataType = jp.getPropertiesMap().getProperty("soffid.data.type");
+        				if (dataType != null) {
+        					TypeEnumeration desired = guessParameterType(jp);
+        					existingParameter.setDataType(desired);
         				}
-        				else
-        					existingParameter.setType(desired);
-        				break;
+    					existingParameter.setType( guessParameterType2(jp));
         			}
         		}
         		if (! found )
         		{
 		        	ReportParameter p = new ReportParameter();
 		        	p.setName(jp.getName());
+		        	p.setOrder(order++);
 		        	p.setDescription (jp.getDescription());
 		        	if (p.getDescription() == null)
 		        		p.setDescription("No description available");
-		        	p.setType(guessParameterType(jp));
+		        	p.setDataType(guessParameterType(jp));
+		        	p.setType(guessParameterType2(jp));
 		        	rp.add(p);
         		}
 	    	}
@@ -239,6 +238,42 @@ public class QueryExecutor {
         return reportEntityDao.toReport(re);
 	}
 
+	private ParameterType guessParameterType2(JRParameter jp) {
+    	if (jp.getValueClass().isAssignableFrom(String.class))
+    		return ParameterType.STRING_PARAM;
+    	else if (jp.getValueClass().isAssignableFrom(int.class) ||
+    			jp.getValueClass().isAssignableFrom(long.class) ||
+    			jp.getValueClass().isAssignableFrom(Integer.class) ||
+    			jp.getValueClass().isAssignableFrom(Long.class) )
+    	{
+    		return ParameterType.LONG_PARAM;
+    	}
+    	else if (jp.getValueClass().isAssignableFrom(double.class) ||
+    			jp.getValueClass().isAssignableFrom(float.class) ||
+    			jp.getValueClass().isAssignableFrom(Double.class) ||
+    			jp.getValueClass().isAssignableFrom(Float.class) )
+    	{
+    		return ParameterType.DOUBLE_PARAM;
+    	}
+    	else if (jp.getValueClass().isAssignableFrom(Date.class) ||
+    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
+    			jp.getValueClass().isAssignableFrom(Date.class) ||
+    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
+    			jp.getValueClass().isAssignableFrom(Calendar.class) )
+    	{
+    		return ParameterType.DATE_PARAM;
+    	}
+    	else if (jp.getValueClass().isAssignableFrom(boolean.class) ||
+    			jp.getValueClass().isAssignableFrom(Boolean.class)  )
+    	{
+    		return ParameterType.BOOLEAN_PARAM;
+    	} 
+    	else
+    	{
+    		return ParameterType.STRING_PARAM;
+    	}
+	}
+
 	private DocumentReference storeDocument(String name, byte[] data, DocumentService doc) throws NamingException, RemoteException, CreateException, DocumentBeanException, InternalErrorException {
 		doc.createDocument("application/x-rpt", name+".rpt", "report");
 		doc.openUploadTransfer();
@@ -248,23 +283,35 @@ public class QueryExecutor {
 	}
 
 	@SuppressWarnings("unchecked")
-	private ParameterType guessParameterType (JRParameter jp)
+	private TypeEnumeration guessParameterType (JRParameter jp)
 	{
+		String dataType = jp.getPropertiesMap().getProperty("soffid.data.type");
+		if (dataType != null && ! dataType.trim().isEmpty()) {
+			List literals = TypeEnumeration.literals();
+			List names = TypeEnumeration.names();
+			for (int i = 0; i < names.size(); i++)
+				if ( dataType.equalsIgnoreCase((String) names.get(i)))
+					return TypeEnumeration.fromString((String) literals.get(i));
+			for (int i = 0; i < names.size(); i++)
+				if ( (dataType+"_TYPE").equalsIgnoreCase((String) names.get(i)))
+					return TypeEnumeration.fromString((String) literals.get(i));
+		}
+		
     	if (jp.getValueClass().isAssignableFrom(String.class))
-    		return(ParameterType.STRING_PARAM);
+    		return TypeEnumeration.STRING_TYPE;
     	else if (jp.getValueClass().isAssignableFrom(int.class) ||
     			jp.getValueClass().isAssignableFrom(long.class) ||
     			jp.getValueClass().isAssignableFrom(Integer.class) ||
     			jp.getValueClass().isAssignableFrom(Long.class) )
     	{
-    		return (ParameterType.LONG_PARAM);
+    		return TypeEnumeration.NUMBER_TYPE;
     	}
     	else if (jp.getValueClass().isAssignableFrom(double.class) ||
     			jp.getValueClass().isAssignableFrom(float.class) ||
     			jp.getValueClass().isAssignableFrom(Double.class) ||
     			jp.getValueClass().isAssignableFrom(Float.class) )
     	{
-    		return (ParameterType.DOUBLE_PARAM);
+    		return TypeEnumeration.NUMBER_TYPE;
     	}
     	else if (jp.getValueClass().isAssignableFrom(Date.class) ||
     			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
@@ -272,16 +319,16 @@ public class QueryExecutor {
     			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
     			jp.getValueClass().isAssignableFrom(Calendar.class) )
     	{
-    		return(ParameterType.DATE_PARAM);
+    		return TypeEnumeration.DATE_TIME_TYPE;
     	}
     	else if (jp.getValueClass().isAssignableFrom(boolean.class) ||
     			jp.getValueClass().isAssignableFrom(Boolean.class)  )
     	{
-    		return(ParameterType.BOOLEAN_PARAM);
+    		return TypeEnumeration.BOOLEAN_TYPE;
     	} 
     	else
     	{
-    		return (ParameterType.STRING_PARAM);
+    		return TypeEnumeration.STRING_TYPE;
     	}
 	}
 	

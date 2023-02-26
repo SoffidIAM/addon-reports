@@ -58,11 +58,7 @@
 				<datarow>
 					<label bind="@name"></label>
 					<textbox bind="@description"></textbox>
-					<listbox mold="select" bind="@type" dataPath="/model:/paramType">
-						<dataitem bind="@value">
-							<listcell bind="@literal"></listcell>
-						</dataitem>
-					</listbox>
+					<customfield3 bind="@dataType" dataType="STRING" noLabel="true" enumeration="es.caib.seycon.ng.comu.TypeEnumeration"/>
 				</datarow>
 			</grid>
 

@@ -6,11 +6,14 @@
 package com.soffid.iam.addons.report.model;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.soffid.iam.addons.report.api.ParameterType;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.addons.report.api.ReportParameter;
 
@@ -34,7 +37,15 @@ public class ReportEntityDaoImpl extends ReportEntityDaoBase
 				users.add(ace.getRole().getName()+" @ "+ace.getRole().getSystem().getName());
 		}
 		target.setAcl(users);
-		target.setParameters(getReportParameterEntityDao().toReportParameterList(source.getParameters()));
+		final List<ReportParameter> list = getReportParameterEntityDao().toReportParameterList(source.getParameters());
+		target.setParameters(list);
+		Collections.sort(list, new Comparator<ReportParameter>() {
+		    public int compare(ReportParameter p1, ReportParameter p2) {
+		    	long o1 = p1.getOrder() == null ? 0: p1.getOrder().longValue();
+		    	long o2 = p2.getOrder() == null ? 0: p2.getOrder().longValue();
+		    	return o2 > o1 ? -1: o2 < 1 ? +1: 0;
+		    }
+		});
 	}
 
 	@Override

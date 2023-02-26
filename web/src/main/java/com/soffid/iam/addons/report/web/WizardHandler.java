@@ -333,8 +333,12 @@ public class WizardHandler extends Window {
 			String description = (String) XPathUtils.eval(ctx, "description");
 			DataType dt = new DataType();
 			dt.setLabel(description);
+			
+			TypeEnumeration te = (TypeEnumeration) XPathUtils.eval(ctx, "@dataType");
 			ParameterType type = (ParameterType) XPathUtils.eval(ctx, "@type");
-			if (type.equals(ParameterType.DATE_PARAM))
+			if (te != null) {
+				dt.setType(te);
+			} else if (type.equals(ParameterType.DATE_PARAM))
 			{
 				dt.setType(TypeEnumeration.DATE_TIME_TYPE);
 			} else if (type.equals(ParameterType.BOOLEAN_PARAM))
@@ -381,6 +385,7 @@ public class WizardHandler extends Window {
 			inputField.afterCompose();
 			inputField.createField();
 			inputField.runOnLoadTrigger();
+			CustomField3 cf = new CustomField3();
 		} catch (Exception e) {
 		}
 	}
