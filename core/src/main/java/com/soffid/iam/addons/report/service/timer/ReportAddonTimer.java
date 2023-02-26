@@ -75,15 +75,15 @@ public class ReportAddonTimer implements Runnable {
 									absoluteNext = next;
 							} catch (InternalErrorException e1) {
 							}
+							if (!finished)
+								executor.runInNestedLogin();
+							if (!finished)
+								scheduler.run();
 						} catch (Exception e) {
 							log.warn("Error processing reports for tenant " + tenant.getName(), e);
 						} finally {
 							Security.nestedLogoff();
 						}
-						if (!finished)
-							executor.run();
-						if (!finished)
-							scheduler.run();
 					}
 				} catch (Exception e) {
 					log.warn("Error processing reports", e);
@@ -94,7 +94,8 @@ public class ReportAddonTimer implements Runnable {
 						long time = 10 * 60 * 1000;
 						if ( absoluteNext != null && absoluteNext.getTime() - System.currentTimeMillis() < time)
 							time = absoluteNext.getTime() - System.currentTimeMillis();
-						semaphore.wait(time);
+						if (time > 0)
+							semaphore.wait(time);
 					} catch (InterruptedException e) {
 					} 
 				}

@@ -80,6 +80,10 @@ public class ReportExecutorTimer implements Runnable {
 
 	@Override
 	public void run() {
+		executePendingReports(true);
+	}
+
+	private void executePendingReports(boolean nestedLogin) {
 		try
 		{
 			connectServices();
@@ -92,8 +96,10 @@ public class ReportExecutorTimer implements Runnable {
 					if (sr.getUsers().isEmpty())
 						sr.getUsers().add("guest");
 					Long tenantId = reportSchedulerService.getReportTenantId(sr.getId());
-					String tenant = Security.getTenantName(tenantId);
-					Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
+					if (nestedLogin) {
+						String tenant = Security.getTenantName(tenantId);
+						Security.nestedLogin(tenant, "report #"+sr.getReportId(), Security.ALL_PERMISSIONS);
+					}
 					try {
 						JasperReport jasper = generateJasper(sr);
 						log.info("Executing report "+sr.getName());
@@ -112,7 +118,8 @@ public class ReportExecutorTimer implements Runnable {
 						sr.setErrorMessage(msg);
 						reportSchedulerService.updateReport(sr);
 					} finally {
-						Security.nestedLogoff();
+						if (nestedLogin)
+							Security.nestedLogoff();
 					}
 					removeJasperFile();
 				}
@@ -401,6 +408,10 @@ public class ReportExecutorTimer implements Runnable {
 		reportService = (ReportService) ServiceLocator.instance().getService(ReportService.SERVICE_NAME);
 		sessionFactory = (SessionFactory) ServiceLocator.instance().getService("sessionFactory");
 		documentService = (DocumentService) ServiceLocator.instance().getService( DocumentService.SERVICE_NAME);
+	}
+
+	public void runInNestedLogin() {
+		executePendingReports(false);
 	}
 	
 
