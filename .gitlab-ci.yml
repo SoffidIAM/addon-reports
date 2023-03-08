@@ -60,7 +60,7 @@ maven_release:
     - 'ssh-add "$GITHUB_SSH_KEY"'
     - mkdir -p ~/.ssh
     - 'echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - 'base64 -d $KEYSTORE >/tmp/keystore.p12'
+    - 'base64 -d $KEYSTORE_JKS >/tmp/keystore.p12'
     - rm -rf ../clone
     - mvn scm:checkout -DscmVersion="$CI_COMMIT_BRANCH" -DscmVersionType=branch -DcheckoutDirectory=../clone
     - cd ../clone
