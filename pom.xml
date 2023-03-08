@@ -5,14 +5,14 @@
 	<artifactId>report</artifactId>
 	<packaging>pom</packaging>
 	<name>Soffid Report manager</name>
-	<version>3.0.7-SNAPSHOT</version>
+	<version>3.0.7</version>
 	<description>SOFFID module to add, customize, launch and schedule reports</description>
 	<prerequisites>
 		<maven>2.0.1</maven>
 	</prerequisites>
 	<scm>
 		<connection>scm:git:ssh://git@github.com/SoffidIAM/addon-reports.git</connection> 
-          <tag>HEAD</tag>
+          <tag>version-3.0.7</tag>
   </scm>
 	<build>
 		<defaultGoal>install</defaultGoal>
