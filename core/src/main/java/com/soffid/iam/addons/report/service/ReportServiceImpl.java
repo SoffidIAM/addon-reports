@@ -441,9 +441,10 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 		if (ere != null)
 		{
 			User u = getUserService().getCurrentUser();
+			final Collection<ExecutedReportTargetEntity> acl = new LinkedList( ere.getAcl() );
 			if (u != null)
 			{
-				for ( Iterator<ExecutedReportTargetEntity> it = ere.getAcl().iterator();
+				for ( Iterator<ExecutedReportTargetEntity> it = acl.iterator();
 						it.hasNext();)
 				{
 					ExecutedReportTargetEntity target = it.next ();
@@ -454,7 +455,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 					}
 				}
 			}
-			if (ere.getAcl().isEmpty())
+			if (acl.isEmpty())
 			{
 				DocumentService ds = getDocumentService();
 				if (ere.getHtmlDocument() != null)
