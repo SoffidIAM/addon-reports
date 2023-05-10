@@ -193,10 +193,8 @@ public class QueryExecutor {
         				rp.add(existingParameter);
         				existingParameter.setOrder(order ++);
         				String dataType = jp.getPropertiesMap().getProperty("soffid.data.type");
-        				if (dataType != null) {
-        					TypeEnumeration desired = guessParameterType(jp);
-        					existingParameter.setDataType(desired);
-        				}
+    					TypeEnumeration desired = guessParameterType(jp);
+    					existingParameter.setDataType(desired);
     					existingParameter.setType( guessParameterType2(jp));
         			}
         		}

@@ -3,6 +3,7 @@ package com.soffid.iam.addons.report.model;
 import java.util.Collection;
 import java.util.Date;
 
+import com.soffid.iam.addons.report.api.FormatEnumeration;
 import com.soffid.iam.addons.report.api.Report;
 import com.soffid.iam.model.TenantEntity;
 import com.soffid.mda.annotation.Column;
@@ -42,7 +43,10 @@ public class ReportEntity {
 	
 	@Column(name="REP_TEN_ID", length=128)
 	TenantEntity tenant;
-	
+
+	@Column(name="REP_FORMAT", length=10)
+	@Nullable FormatEnumeration format;
+
 	@ForeignKey(foreignColumn="RAC_REP_ID")
 	Collection<ReportACLEntity> acl;
 

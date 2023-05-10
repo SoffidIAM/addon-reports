@@ -15,11 +15,12 @@ import org.zkoss.zul.Grid;
 import org.zkoss.zul.Radio;
 import org.zkoss.zul.Radiogroup;
 import org.zkoss.zul.Row;
-import org.zkoss.zul.Textbox;
 import org.zkoss.zul.Timer;
 import org.zkoss.zul.Window;
 
 import com.soffid.iam.addons.report.api.ExecutedReport;
+import com.soffid.iam.addons.report.api.FormatEnumeration;
+import com.soffid.iam.addons.report.api.FormatEnumerationEnum;
 import com.soffid.iam.addons.report.api.ParameterType;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 import com.soffid.iam.addons.report.service.ejb.ReportService;
@@ -258,19 +259,26 @@ public class WizardHandler extends Window {
  			DataNodeCollection coll = (DataNodeCollection) model.getJXPathContext().getValue("/executedReport");
 			coll.refresh();
  			setVisible(false);
- 			if (report.getPdfDocument() == null)
+ 			String doc = report.getDefaultFormat() == FormatEnumeration.CSV ? report.getCsvDocument() :
+ 				report.getDefaultFormat() == FormatEnumeration.HTML ?         report.getHtmlDocument() :
+ 	 			report.getDefaultFormat() == FormatEnumeration.XLS ?           report.getXlsDocument() :
+ 	 	 		report.getDefaultFormat() == FormatEnumeration.XML ?          report.getXmlDocument() :
+ 	 	 	 	report.getPdfDocument() ;
+ 			if (doc == null)
  			{
 					es.caib.zkib.zkiblaf.Missatgebox.avis(new Messages().get("reportIsEmpty"));
  				
  			} else {
  				
+ 						
 				com.soffid.iam.doc.service.ejb.DocumentService svc =
 							(DocumentService) new javax.naming.InitialContext()
 					.lookup (com.soffid.iam.doc.service.ejb.DocumentServiceHome.JNDI_NAME);
-					svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(report.getPdfDocument()));
+					svc.openDocument(new com.soffid.iam.doc.api.DocumentReference(doc));
 
+		 			String ext = report.getDefaultFormat() == null ? "pdf": report.getDefaultFormat().getValue();
 					org.zkoss.util.media.AMedia media = new org.zkoss.util.media.AMedia(
-							report.getName()+".pdf", "pdf", "binary/octet-stream", 
+							report.getName()+"."+ext, ext, "binary/octet-stream", 
 							new com.soffid.iam.doc.api.DocumentInputStream(svc) );
 					
 					Filedownload.save(media);

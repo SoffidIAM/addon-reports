@@ -17,6 +17,8 @@ public class ExecutedReport {
 	Date date;
 	boolean done;
 	boolean error;
+	@Nullable FormatEnumeration defaultFormat;
+	
 	@Nullable Boolean notify;
 	@Nullable String user;
 	@Nullable String errorMessage;

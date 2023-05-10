@@ -23,11 +23,13 @@
 				onDownloadXls="ref:frame.downloadXls" 
 				onDownloadHtml="ref:frame.downloadHtml" 
 				onDownloadXml="ref:frame.downloadXml" 
+				onDownloadPdf="ref:frame.downloadPDf" 
 				enablefilter="true">
 			<attribute name="columns"><![CDATA[
 - name: "${msg['report.name']}"
   template: >-
     <span onClick="zkDatatable.sendClientAction(this, 'onDownload');">#{name}</span>
+    <a href='#' onClick="zkDatatable.sendClientAction(this, 'onDownloadPdf');">[PDF]</a>
     <a href='#' onClick="zkDatatable.sendClientAction(this, 'onDownloadXml');">[XML]</a>
     <a href='#' onClick="zkDatatable.sendClientAction(this, 'onDownloadHtml');">[HTML]</a>
     <a href='#' onClick="zkDatatable.sendClientAction(this, 'onDownloadCsv');">[CSV]</a>

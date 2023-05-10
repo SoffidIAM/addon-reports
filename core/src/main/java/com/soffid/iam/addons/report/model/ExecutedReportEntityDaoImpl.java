@@ -33,7 +33,7 @@ public class ExecutedReportEntityDaoImpl extends ExecutedReportEntityDaoBase
 		}
 		target.setUsers(users);
 		target.setParams(getExecutedReportParameterEntityDao().toParameterValueList(source.getParameters()));
-		
+		target.setDefaultFormat(source.getReport().getFormat());
 		target.setReportId(source.getReport().getId());
 	}
 

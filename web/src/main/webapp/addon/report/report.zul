@@ -10,7 +10,7 @@
 
 	<datamodel id="model" rootNode="root" src="addon/report/descriptorReport.xml"/>
 	
-	<embed id="wizardEmbed" src="/addon/report//wizard.zul"/> 
+	<embed id="wizardEmbed" src="/addon/report/wizard.zul"/> 
 
 	<div sclass="card" id="card">
 		<div sclass="card__face card__face--front">

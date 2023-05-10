@@ -17,4 +17,6 @@ public class Report {
 	@Nullable Date date;
 
 	@Nullable Collection<ReportParameter> parameters;
+	
+	@Nullable FormatEnumeration format;
 }
