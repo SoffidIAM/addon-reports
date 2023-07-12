@@ -3,7 +3,7 @@
 	<parent>
 		<artifactId>report</artifactId>
 		<groupId>com.soffid.iam.addon.report</groupId>
-		<version>3.0.13</version>
+		<version>3.0.14-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>report-webservice</artifactId>
