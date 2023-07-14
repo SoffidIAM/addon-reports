@@ -19,7 +19,7 @@ public class ExecutedReportParameterEntity {
 	@Column(name = "ERP_ID")
 	Long id;
 	
-	@Column(name = "ERP_ERE_ID", reverseAttribute="parameters", composition=true)
+	@Column(name = "ERP_ERE_ID", reverseAttribute="parameters")
 	ExecutedReportEntity report;
 
 	@Column(name = "ERP_NAME")

@@ -19,6 +19,6 @@ public class ExecutedReportTargetEntity {
 	@Column(name="RET_USU_ID", cascadeDelete=true)
 	UsuariEntity user;
 		
-	@Column(name="RET_ERE_ID", reverseAttribute="acl", composition=true) 
+	@Column(name="RET_ERE_ID", reverseAttribute="acl") 
 	ExecutedReportEntity report;
 }
