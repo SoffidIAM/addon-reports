@@ -120,6 +120,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 			ere.setError(false);
 			ere.setReport(getReportEntityDao().load(report.getReportId()));
 			ere.setNotify(Boolean.TRUE);
+			getExecutedReportEntityDao().create(ere);
 			for (Long user: targets.getUsers())
 			{
 				ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
@@ -127,6 +128,7 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 				erte.setUser(getUserEntityDao().load(user));
 				erte.setReport(ere);
 				ere.getAcl().add(erte);
+				getExecutedReportTargetEntityDao().create(erte);
 			}
 			
 			for (ParameterValue pm: report.getParams())
@@ -138,9 +140,9 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 				ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
 				erpe.setReport(ere);
 				ere.getParameters().add(erpe);
+				getExecutedReportParameterEntityDao().create(erpe);
 			}
 			
-			getExecutedReportEntityDao().create(ere);
 			
 			sre.setLastExecution(new Date());
 			getScheduledReportEntityDao().update(sre);
