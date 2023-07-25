@@ -120,12 +120,14 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			er.setDone(false);
 			er.setError(false);
 			er.setName(schedule.getName());
+			getExecutedReportEntityDao().create(er);
 			if (myself != null) {
 				er.setUser(myself.getUserName());
 				ExecutedReportTargetEntity erte = getExecutedReportTargetEntityDao().newExecutedReportTargetEntity();
 				erte.setReport(er);
 				erte.setUser(myself);
 				er.getAcl().add(erte);
+				getExecutedReportTargetEntityDao().create(erte);
 			}
 			
 			for (ParameterValue pv: schedule.getParams())
@@ -133,9 +135,9 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 				ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv);
 				erpe.setReport(er);
 				er.getParameters().add(erpe);
+				getExecutedReportParameterEntityDao().create(erpe);
 			}
 			
-			getExecutedReportEntityDao().create(er);
 			
 			try {
 				String jndi = "java:module/ReportExecutorBean";
