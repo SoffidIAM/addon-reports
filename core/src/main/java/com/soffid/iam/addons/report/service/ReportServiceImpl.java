@@ -518,7 +518,7 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 						it.hasNext();)
 				{
 					ExecutedReportTargetEntity target = it.next ();
-					target.setReport(null);
+					getExecutedReportTargetEntityDao().remove(target);
 					it.remove();
 				}
 				DocumentService ds = getDocumentService();
