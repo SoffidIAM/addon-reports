@@ -551,6 +551,8 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 					ds.deleteDocument(new DocumentReference(ere.getCsvDocument()));
 				if (ere.getXlsDocument() != null)
 					ds.deleteDocument(new DocumentReference(ere.getXlsDocument()));
+				getExecutedReportParameterEntityDao().remove(ere.getParameters());
+				ere.getParameters().clear();
 				getExecutedReportEntityDao().remove(ere);
 			}
 		}
