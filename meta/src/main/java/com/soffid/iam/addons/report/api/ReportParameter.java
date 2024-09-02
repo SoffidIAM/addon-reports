@@ -1,9 +1,5 @@
 package com.soffid.iam.addons.report.api;
 
-import com.soffid.iam.addons.report.model.ReportEntity;
-import com.soffid.mda.annotation.Attribute;
-import com.soffid.mda.annotation.Column;
-import com.soffid.mda.annotation.Identifier;
 import com.soffid.mda.annotation.Nullable;
 import com.soffid.mda.annotation.ValueObject;
 
@@ -17,5 +13,6 @@ public class ReportParameter {
 		@Nullable String description;
 		@Nullable ParameterType type;
 		@Nullable TypeEnumeration dataType;
+		boolean multi;
 		Long reportId;
 }

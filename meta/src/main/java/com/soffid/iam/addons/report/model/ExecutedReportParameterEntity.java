@@ -45,6 +45,10 @@ public class ExecutedReportParameterEntity {
 	@Nullable
 	Boolean booleanValue;
 
+	@Column(name = "SRP_MULTI")
+	@Nullable
+	Boolean multi;
+
 	@Column(name= "ERP_TYPE")
 	ParameterType type;
 }

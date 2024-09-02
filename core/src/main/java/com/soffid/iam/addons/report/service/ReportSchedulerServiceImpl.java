@@ -136,11 +136,30 @@ public class ReportSchedulerServiceImpl extends ReportSchedulerServiceBase {
 				ParameterValue pv2 = new ParameterValue();
 				pv2.setName(pm.getName());
 				pv2.setType(pm.getType());
-				pv2.setValue(pm.getValue());
-				ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
-				erpe.setReport(ere);
-				ere.getParameters().add(erpe);
-				getExecutedReportParameterEntityDao().create(erpe);
+				if (pm.isMulti()) {
+					List l = (List) pm.getValue();
+					if (l == null || l.isEmpty()) {
+						pv2.setValue(null);
+						ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
+						erpe.setReport(ere);
+						ere.getParameters().add(erpe);
+						getExecutedReportParameterEntityDao().create(erpe);
+					} else for (Object vv: l) {
+						ParameterValue pv3 = new ParameterValue(pv2);
+						pv3.setValue(vv);
+						ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv3);
+						erpe.setReport(ere);
+						ere.getParameters().add(erpe);
+						getExecutedReportParameterEntityDao().create(erpe);
+						
+					}
+				} else {
+					pv2.setValue(pm.getValue());
+					ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
+					erpe.setReport(ere);
+					ere.getParameters().add(erpe);
+					getExecutedReportParameterEntityDao().create(erpe);
+				}
 			}
 			
 			

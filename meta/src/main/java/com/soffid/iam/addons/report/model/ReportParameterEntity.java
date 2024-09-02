@@ -36,6 +36,10 @@ public class ReportParameterEntity {
 	@Column(name="PAR_DATATYP", length=32)
 	TypeEnumeration dataType;
 
+	@Nullable
+	@Column(name="PAR_MULTI")
+	Boolean multi;
+
 	@Column(name="PAR_REP_ID")
 	ReportEntity report;
 }

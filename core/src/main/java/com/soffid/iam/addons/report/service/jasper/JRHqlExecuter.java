@@ -42,6 +42,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
@@ -115,13 +116,23 @@ public class JRHqlExecuter extends JRAbstractQueryExecuter
 				Type type = getHibernateType(p.getValueClass());
 				if (type == null) {
 					java.lang.reflect.Type paramType = p.getValueClass();
-					if (p.getValueClass().isAssignableFrom(Collection.class) && 
+					if (Collection.class.isAssignableFrom(p.getValueClass()) && 
 							(paramType instanceof ParameterizedType)) {
 						java.lang.reflect.Type[] args = ((ParameterizedType)paramType).getActualTypeArguments();
 						type = getHibernateType((Class) args[0]);
 						if (type == null)
 							throw new JRException("Unsupported parameter type "+p.getValueClassName()+" for "+p.getName());
 						q.setParameterList(getHqlParameterName(param.getName()), (Collection) p.getValue(), type);
+					} else if (Collection.class.isAssignableFrom(p.getValueClass())) {
+						try {
+							if (p.getNestedTypeName() != null &&
+										!p.getNestedTypeName().trim().isEmpty())
+								q.setParameterList(getHqlParameterName(param.getName()), (Collection) p.getValue(), getHibernateType(Class.forName(p.getNestedTypeName())));
+							else
+								q.setParameterList(getHqlParameterName(param.getName()), (Collection) p.getValue());
+						} catch (ClassNotFoundException e) {
+							q.setParameterList(getHqlParameterName(param.getName()), (Collection) p.getValue());
+						}
 					} else if (p.getValueClass().isArray()) {
 						Class member = p.getValueClass().getComponentType();
 						type = getHibernateType(member);

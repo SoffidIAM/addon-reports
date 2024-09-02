@@ -191,6 +191,7 @@ public class WizardHandler extends Window {
         	es.caib.zkib.binder.BindContext ctx = XPathUtils.getComponentContext(row);
         	pv.setName((String) XPathUtils.eval(ctx, "@name"));
         	pv.setType((ParameterType) XPathUtils.eval(ctx, "@type"));
+        	pv.setMulti((Boolean) XPathUtils.eval(ctx, "@multi"));
         	Component d = row.getFirstChild();
         	InputField3 inputField  = (InputField3) d.getFirstChild();
        		pv.setValue( inputField.getValue() );
@@ -386,14 +387,17 @@ public class WizardHandler extends Window {
 			else {
 				dt.setType(TypeEnumeration.STRING_TYPE);
 			}
+			Boolean multi = (Boolean) XPathUtils.eval(ctx, "@multi");
+			dt.setMultiValued(Boolean.TRUE.equals(multi) );
 			InputField3 inputField = new InputField3();
 			inputField.setDataType(dt);
 			inputField.setParent(d);
 			inputField.setLabel(description);
 			inputField.afterCompose();
 			inputField.createField();
+			if (multi)
+				inputField.setValue(new LinkedList());
 			inputField.runOnLoadTrigger();
-			CustomField3 cf = new CustomField3();
 		} catch (Exception e) {
 		}
 	}

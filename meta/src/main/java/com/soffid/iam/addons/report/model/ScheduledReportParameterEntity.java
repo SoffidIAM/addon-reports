@@ -45,6 +45,10 @@ public class ScheduledReportParameterEntity {
 	@Nullable
 	Boolean booleanValue;
 
+	@Column(name = "SRP_MULTI")
+	@Nullable
+	Boolean multi;
+
 	@Column(name= "SRP_TYPE")
 	ParameterType type;
 }

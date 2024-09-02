@@ -37,6 +37,7 @@ import org.hibernate.Session;
 
 import com.soffid.iam.addons.report.service.SessionHolder;
 
+import antlr.collections.List;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
 import net.sf.jasperreports.engine.JRException;
@@ -85,7 +86,7 @@ public class JRSqlExecuter extends JRAbstractQueryExecuter
 					if (value == null)
 						q.setNull(position, getSqlType(p.getValueClass()));
 					else
-						setParameter(q, position, p);
+						setParameter(q, position, p); 
 					position++;
 				}
 				return new JRSqlDataSource(q);

@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -145,6 +146,16 @@ public class ReportExecutorTimer implements Runnable {
 				{
 					if (pv.getValue() == null || "".equals(pv.getValue()))
 						v.put(pv.getName(), null);
+					else if (pv.isMulti() && jp.getValueClass().isAssignableFrom(List.class))  {
+						final Collection collection = (Collection)pv.getValue();
+						if (collection == null || collection.isEmpty()) {
+							v.put(pv.getName(), Arrays.asList(" - void "+System.currentTimeMillis()+ " - "));
+							v.put(pv.getName()+"_EMPTY", true);							
+						} else {
+							v.put(pv.getName(), pv.getValue());
+							v.put(pv.getName()+"_EMPTY", false);							
+						}
+					}
 					else if (jp.getValueClass().isAssignableFrom(pv.getValue().getClass()))
 						v.put(pv.getName(), pv.getValue());
 					else if (jp.getValueClass().isAssignableFrom(Integer.class))

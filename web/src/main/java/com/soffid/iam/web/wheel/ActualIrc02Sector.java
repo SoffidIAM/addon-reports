@@ -50,11 +50,11 @@ public class ActualIrc02Sector {
 						r.getTarget().add("SOFFID_ADMIN@soffid");
 						r.setReportId(rep.getId());
 						r.setParams(new LinkedList<>());
-						r.getParams().add(new ParameterValue(null, "all", ParameterType.BOOLEAN_PARAM , true));
-						r.getParams().add(new ParameterValue(null, "forbiddenRisk", ParameterType.BOOLEAN_PARAM, true));
-						r.getParams().add(new ParameterValue(null, "highRisk", ParameterType.BOOLEAN_PARAM, true));
-						r.getParams().add(new ParameterValue(null, "app", ParameterType.STRING_PARAM, ""));
-						r.getParams().add(new ParameterValue(null, "lowRisk", ParameterType.BOOLEAN_PARAM, true));
+						r.getParams().add(new ParameterValue(null, "all", false, ParameterType.BOOLEAN_PARAM , true));
+						r.getParams().add(new ParameterValue(null, "forbiddenRisk", false, ParameterType.BOOLEAN_PARAM, true));
+						r.getParams().add(new ParameterValue(null, "highRisk", false, ParameterType.BOOLEAN_PARAM, true));
+						r.getParams().add(new ParameterValue(null, "app", false, ParameterType.STRING_PARAM, ""));
+						r.getParams().add(new ParameterValue(null, "lowRisk", false, ParameterType.BOOLEAN_PARAM, true));
 						r = reportService.create(r);
 						Application.jumpTo("/addon/report/report.zul?wizard=openSchedule&id="+r.getId());
 						return;

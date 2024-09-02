@@ -132,10 +132,29 @@ public class ReportServiceImpl extends ReportServiceBase implements ApplicationC
 			
 			for (ParameterValue pv: schedule.getParams())
 			{
-				ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv);
-				erpe.setReport(er);
-				er.getParameters().add(erpe);
-				getExecutedReportParameterEntityDao().create(erpe);
+				if (pv.isMulti()) {
+					java.util.List list = (List) pv.getValue();
+					if (list == null || list.isEmpty()) {
+						ParameterValue pv2 = new ParameterValue(pv);
+						pv2.setValue(null);
+						ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
+						erpe.setReport(er);
+						er.getParameters().add(erpe);
+						getExecutedReportParameterEntityDao().create(erpe);
+					} else for (Object v: list) {
+						ParameterValue pv2 = new ParameterValue(pv);
+						pv2.setValue(v);
+						ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv2);
+						erpe.setReport(er);
+						er.getParameters().add(erpe);
+						getExecutedReportParameterEntityDao().create(erpe);
+					}
+				} else {
+					ExecutedReportParameterEntity erpe = getExecutedReportParameterEntityDao().parameterValueToEntity(pv);
+					erpe.setReport(er);
+					er.getParameters().add(erpe);
+					getExecutedReportParameterEntityDao().create(erpe);
+				}
 			}
 			
 			

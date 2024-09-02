@@ -195,6 +195,7 @@ public class QueryExecutor {
         				String dataType = jp.getPropertiesMap().getProperty("soffid.data.type");
     					TypeEnumeration desired = guessParameterType(jp);
     					existingParameter.setDataType(desired);
+    					existingParameter.setMulti(jp.getValueClass().isAssignableFrom(List.class));
     					existingParameter.setType( guessParameterType2(jp));
         			}
         		}
@@ -207,6 +208,7 @@ public class QueryExecutor {
 		        	if (p.getDescription() == null)
 		        		p.setDescription("No description available");
 		        	p.setDataType(guessParameterType(jp));
+					p.setMulti(jp.getValueClass().isAssignableFrom(List.class));
 		        	p.setType(guessParameterType2(jp));
 		        	rp.add(p);
         		}
@@ -239,32 +241,36 @@ public class QueryExecutor {
 	}
 
 	private ParameterType guessParameterType2(JRParameter jp) {
-    	if (jp.getValueClass().isAssignableFrom(String.class))
+    	Class<?> targetClass = jp.getValueClass();
+    	if (targetClass.isAssignableFrom(List.class)) {
+    		targetClass = jp.getNestedType();
+    	}
+		if (targetClass.isAssignableFrom(String.class))
     		return ParameterType.STRING_PARAM;
-    	else if (jp.getValueClass().isAssignableFrom(int.class) ||
-    			jp.getValueClass().isAssignableFrom(long.class) ||
-    			jp.getValueClass().isAssignableFrom(Integer.class) ||
-    			jp.getValueClass().isAssignableFrom(Long.class) )
+    	else if (targetClass.isAssignableFrom(int.class) ||
+    			targetClass.isAssignableFrom(long.class) ||
+    			targetClass.isAssignableFrom(Integer.class) ||
+    			targetClass.isAssignableFrom(Long.class) )
     	{
     		return ParameterType.LONG_PARAM;
     	}
-    	else if (jp.getValueClass().isAssignableFrom(double.class) ||
-    			jp.getValueClass().isAssignableFrom(float.class) ||
-    			jp.getValueClass().isAssignableFrom(Double.class) ||
-    			jp.getValueClass().isAssignableFrom(Float.class) )
+    	else if (targetClass.isAssignableFrom(double.class) ||
+    			targetClass.isAssignableFrom(float.class) ||
+    			targetClass.isAssignableFrom(Double.class) ||
+    			targetClass.isAssignableFrom(Float.class) )
     	{
     		return ParameterType.DOUBLE_PARAM;
     	}
-    	else if (jp.getValueClass().isAssignableFrom(Date.class) ||
-    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
-    			jp.getValueClass().isAssignableFrom(Date.class) ||
-    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
-    			jp.getValueClass().isAssignableFrom(Calendar.class) )
+    	else if (targetClass.isAssignableFrom(Date.class) ||
+    			targetClass.isAssignableFrom(java.sql.Date.class) ||
+    			targetClass.isAssignableFrom(Date.class) ||
+    			targetClass.isAssignableFrom(java.sql.Date.class) ||
+    			targetClass.isAssignableFrom(Calendar.class) )
     	{
     		return ParameterType.DATE_PARAM;
     	}
-    	else if (jp.getValueClass().isAssignableFrom(boolean.class) ||
-    			jp.getValueClass().isAssignableFrom(Boolean.class)  )
+    	else if (targetClass.isAssignableFrom(boolean.class) ||
+    			targetClass.isAssignableFrom(Boolean.class)  )
     	{
     		return ParameterType.BOOLEAN_PARAM;
     	} 
@@ -297,32 +303,36 @@ public class QueryExecutor {
 					return TypeEnumeration.fromString((String) literals.get(i));
 		}
 		
-    	if (jp.getValueClass().isAssignableFrom(String.class))
+    	Class<?> targetClass = jp.getValueClass();
+    	if (targetClass.isAssignableFrom(List.class)) {
+    		targetClass = jp.getNestedType();
+    	}
+		if (targetClass.isAssignableFrom(String.class))
     		return TypeEnumeration.STRING_TYPE;
-    	else if (jp.getValueClass().isAssignableFrom(int.class) ||
-    			jp.getValueClass().isAssignableFrom(long.class) ||
-    			jp.getValueClass().isAssignableFrom(Integer.class) ||
-    			jp.getValueClass().isAssignableFrom(Long.class) )
+    	else if (targetClass.isAssignableFrom(int.class) ||
+    			targetClass.isAssignableFrom(long.class) ||
+    			targetClass.isAssignableFrom(Integer.class) ||
+    			targetClass.isAssignableFrom(Long.class) )
     	{
     		return TypeEnumeration.NUMBER_TYPE;
     	}
-    	else if (jp.getValueClass().isAssignableFrom(double.class) ||
-    			jp.getValueClass().isAssignableFrom(float.class) ||
-    			jp.getValueClass().isAssignableFrom(Double.class) ||
-    			jp.getValueClass().isAssignableFrom(Float.class) )
+    	else if (targetClass.isAssignableFrom(double.class) ||
+    			targetClass.isAssignableFrom(float.class) ||
+    			targetClass.isAssignableFrom(Double.class) ||
+    			targetClass.isAssignableFrom(Float.class) )
     	{
     		return TypeEnumeration.NUMBER_TYPE;
     	}
-    	else if (jp.getValueClass().isAssignableFrom(Date.class) ||
-    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
-    			jp.getValueClass().isAssignableFrom(Date.class) ||
-    			jp.getValueClass().isAssignableFrom(java.sql.Date.class) ||
-    			jp.getValueClass().isAssignableFrom(Calendar.class) )
+    	else if (targetClass.isAssignableFrom(Date.class) ||
+    			targetClass.isAssignableFrom(java.sql.Date.class) ||
+    			targetClass.isAssignableFrom(Date.class) ||
+    			targetClass.isAssignableFrom(java.sql.Date.class) ||
+    			targetClass.isAssignableFrom(Calendar.class) )
     	{
     		return TypeEnumeration.DATE_TIME_TYPE;
     	}
-    	else if (jp.getValueClass().isAssignableFrom(boolean.class) ||
-    			jp.getValueClass().isAssignableFrom(Boolean.class)  )
+    	else if (targetClass.isAssignableFrom(boolean.class) ||
+    			targetClass.isAssignableFrom(Boolean.class)  )
     	{
     		return TypeEnumeration.BOOLEAN_TYPE;
     	} 

@@ -11,7 +11,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
+import com.soffid.iam.addons.report.api.ParameterValue;
 import com.soffid.iam.addons.report.api.ScheduledReport;
 
 /**
@@ -100,11 +102,33 @@ public class ScheduledReportEntityDaoImpl extends ScheduledReportEntityDaoBase
 		
 		// Populate params
 		target.getParameters().clear();
-		target.getParameters().addAll(
-						getScheduledReportParameterEntityDao().parameterValueToEntityList(
-								source.getParams()));
-		for (ScheduledReportParameterEntity srpe: target.getParameters())
-			srpe.setReport(target);
+		
+		for (ParameterValue pv: source.getParams())
+		{
+			if (pv.isMulti()) {
+				java.util.List list = (List) pv.getValue();
+				if (list == null || list.isEmpty()) {
+					ParameterValue pv2 = new ParameterValue(pv);
+					pv2.setValue(null);
+					ScheduledReportParameterEntity erpe = getScheduledReportParameterEntityDao().parameterValueToEntity(pv2);
+					erpe.setReport(target);
+					target.getParameters().add(erpe);
+					getScheduledReportParameterEntityDao().create(erpe);
+				} else for (Object v: list) {
+					ParameterValue pv2 = new ParameterValue(pv);
+					pv2.setValue(v);
+					ScheduledReportParameterEntity erpe = getScheduledReportParameterEntityDao().parameterValueToEntity(pv2);
+					erpe.setReport(target);
+					target.getParameters().add(erpe);
+					getScheduledReportParameterEntityDao().create(erpe);
+				}
+			} else {
+				ScheduledReportParameterEntity erpe = getScheduledReportParameterEntityDao().parameterValueToEntity(pv);
+				erpe.setReport(target);
+				target.getParameters().add(erpe);
+				getScheduledReportParameterEntityDao().create(erpe);
+			}
+		}
 		
 		// Adjusta cron expression
 		target.setCronExpression(normalize(source.getCronMinute())+ " "+

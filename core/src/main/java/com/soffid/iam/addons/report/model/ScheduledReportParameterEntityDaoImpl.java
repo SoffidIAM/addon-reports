@@ -6,7 +6,11 @@
 package com.soffid.iam.addons.report.model;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.soffid.iam.addons.report.api.ParameterType;
 import com.soffid.iam.addons.report.api.ParameterValue;
@@ -76,5 +80,29 @@ public class ScheduledReportParameterEntityDaoImpl extends ScheduledReportParame
 						Boolean.parseBoolean(source.toString()));
 		else 
 			target.setStringValue(source.getValue() == null ? null: source.getValue().toString());
+	}
+
+	@Override
+	public List<ParameterValue> toParameterValueList(Collection<ScheduledReportParameterEntity> instances) {
+		HashMap<String,ParameterValue> m = new HashMap<>();
+		for (ScheduledReportParameterEntity instance: instances) {
+			ParameterValue pv = toParameterValue(instance);
+			ParameterValue pv2 = m.get(pv.getName());
+			if (pv2 != null && pv2.isMulti()) {
+				((List)pv2.getValue()).add(pv.getValue());
+			}
+			else if (pv.isMulti()) {
+				LinkedList l = new LinkedList();
+				if (pv.getValue() != null)
+					l.add(pv.getValue());
+				pv.setValue(l);
+				m.put(pv.getName(), pv);
+			}
+			else
+			{
+				m.put(pv.getName(), pv);
+			}
+		}
+		return new LinkedList<>(m.values());
 	}
 }

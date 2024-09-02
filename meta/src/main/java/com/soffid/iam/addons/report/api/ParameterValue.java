@@ -11,6 +11,7 @@ import com.soffid.mda.annotation.ValueObject;
 public class ParameterValue {
 		@Nullable Long id;
 		String name;
+		boolean multi;
 		@Nullable ParameterType type;
 		Object value;
 }
