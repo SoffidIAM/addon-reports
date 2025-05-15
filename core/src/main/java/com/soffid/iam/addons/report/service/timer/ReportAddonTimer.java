@@ -64,25 +64,27 @@ public class ReportAddonTimer implements Runnable {
 				Date absoluteNext = null;
 				try {
 					for (Tenant tenant: ServiceLocator.instance().getTenantService().listTenants()) {
-						Security.nestedLogin(tenant.getName(),"-", Security.ALL_PERMISSIONS);
-						try {
-							if (!finished)
-								cluster.run();
-							Date next = null;
+						if (tenant.isEnabled()) {
+							Security.nestedLogin(tenant.getName(),"-", Security.ALL_PERMISSIONS);
 							try {
-								next = scheduler.searchNextScheduledReport();
-								if (next != null && (absoluteNext == null || absoluteNext.after(next)))
-									absoluteNext = next;
-							} catch (InternalErrorException e1) {
+								if (!finished)
+									cluster.run();
+								Date next = null;
+								try {
+									next = scheduler.searchNextScheduledReport();
+									if (next != null && (absoluteNext == null || absoluteNext.after(next)))
+										absoluteNext = next;
+								} catch (InternalErrorException e1) {
+								}
+								if (!finished)
+									executor.runInNestedLogin();
+								if (!finished)
+									scheduler.run();
+							} catch (Exception e) {
+								log.warn("Error processing reports for tenant " + tenant.getName(), e);
+							} finally {
+								Security.nestedLogoff();
 							}
-							if (!finished)
-								executor.runInNestedLogin();
-							if (!finished)
-								scheduler.run();
-						} catch (Exception e) {
-							log.warn("Error processing reports for tenant " + tenant.getName(), e);
-						} finally {
-							Security.nestedLogoff();
 						}
 					}
 				} catch (Exception e) {
