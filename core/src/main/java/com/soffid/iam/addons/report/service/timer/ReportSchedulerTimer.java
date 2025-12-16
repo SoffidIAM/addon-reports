@@ -41,7 +41,12 @@ public class ReportSchedulerTimer implements Runnable {
 				{
 					if (sr.getNextExecution().before(now))
 					{
-						reportSchedulerService.startReport(sr);
+						if (sr.getTarget() == null || sr.getTarget().isEmpty()) {
+							ReportService rsvc = (ReportService) ServiceLocator.instance().getService(ReportService.SERVICE_NAME);
+							rsvc.remove(sr);
+						}
+						else
+							reportSchedulerService.startReport(sr);
 					}
 					else if (next == null || next.after(sr.getNextExecution()))
 						next = sr.getNextExecution();

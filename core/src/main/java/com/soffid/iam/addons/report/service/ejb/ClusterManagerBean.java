@@ -35,7 +35,7 @@ public class ClusterManagerBean  {
 			log.info("Report scheduler is disabled in this node");
 		} else {
 			log.info("Started report cluster manager bean");
-			context.getTimerService().createTimer(60000, 60000, "Cluster manager");
+			context.getTimerService().createTimer(250000, 250000, "Cluster manager");
 		}
 	}
 

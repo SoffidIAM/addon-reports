@@ -125,6 +125,11 @@ public class ReportExecutorTimer implements Runnable {
 					removeJasperFile();
 				}
 				reportService.purgeExpiredReports();
+				try {
+					Thread.sleep(60000);
+				} catch (Exception e) {
+					
+				}
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
